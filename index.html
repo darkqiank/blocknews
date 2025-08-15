@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>财经与Web3新闻聚合平台 | 战略蓝图</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Neutrals -->
+    <!-- Application Structure Plan: The application is designed as a single-page interactive dashboard with four thematic sections: 1) Strategic Overview, 2) Source Explorer, 3) Implementation Blueprint, and 4) Key Considerations. This structure transforms the linear report into an exploratory tool. Instead of reading chapters, users can interact with key concepts directly. The 'Source Explorer' allows users to filter and browse media sources, making the report's tables interactive. The 'Implementation Blueprint' visualizes the phased rollout as an interactive timeline. This user-centric design prioritizes exploration and synthesis over passive reading, making the complex strategy more digestible and engaging. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Information Hierarchy (Chapter 1.2). Goal: Inform/Organize. Viz/Method: Interactive layered diagram (HTML/CSS). Interaction: Hover to reveal details. Justification: Visually represents the core concept of signal vs. noise, making it more intuitive than text alone.
+        - Report Info: Lists of media/KOLs (Chapters 2, 3, 4). Goal: Organize/Compare. Viz/Method: Filterable card grid (HTML/JS). Interaction: Click buttons to filter sources by category (TradFi, Web3, KOLs). Justification: Allows users to actively explore and compare the different information sources, turning static lists into a dynamic discovery tool.
+        - Report Info: Phased implementation plan (Chapter 5.1). Goal: Show Change/Process. Viz/Method: Interactive timeline/process flow (HTML/JS). Interaction: Click on a phase to expand and view details. Justification: Clearly visualizes the strategic rollout over time, making the project plan easier to understand.
+        - Report Info: Technical Integration Methods (Chapters 2.3, 3.3). Goal: Inform/Compare. Viz/Method: Donut Chart (Chart.js/Canvas). Interaction: Hover over segments to see details. Justification: Quantifies and summarizes the different technical approaches required, providing a quick visual summary of the development effort distribution.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background-color: #f8f7f4;
+            color: #3a3a3a;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+        .nav-link:hover {
+            color: #a58a5c;
+        }
+        .nav-link.active {
+            color: #8c734b;
+            border-bottom: 2px solid #8c734b;
+        }
+        .filter-btn {
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .filter-btn.active {
+            background-color: #8c734b;
+            color: #ffffff;
+        }
+        .phase-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .phase-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .source-card {
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+            border: 1px solid #e5e7eb;
+        }
+        .source-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: #a58a5c;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-[#8c734b]">信息枢纽战略蓝图</h1>
+            <div class="hidden md:flex space-x-8">
+                <a href="#overview" class="nav-link text-gray-600 pb-1">战略概览</a>
+                <a href="#explorer" class="nav-link text-gray-600 pb-1">信息源浏览器</a>
+                <a href="#blueprint" class="nav-link text-gray-600 pb-1">实施蓝图</a>
+                <a href="#considerations" class="nav-link text-gray-600 pb-1">核心挑战</a>
+            </div>
+            <div class="md:hidden">
+                <select id="mobile-nav" class="bg-white border border-gray-300 rounded-md py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="#overview">战略概览</option>
+                    <option value="#explorer">信息源浏览器</option>
+                    <option value="#blueprint">实施蓝图</option>
+                    <option value="#considerations">核心挑战</option>
+                </select>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        
+        <section id="overview" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-4">战略概览：构建下一代信息枢纽</h2>
+            <p class="max-w-3xl mx-auto text-center text-gray-600 mb-12">
+                随着传统金融（TradFi）与区块链（Web3）的加速融合，市场迫切需要一个能够桥接两大信息孤岛的统一平台。本蓝图旨在通过智能化的信息聚合与策展，消除信息不对称，为专业人士提供一个跨领域、高信号价值的信息流，成为连接传统金融与数字资产世界的关键桥梁。
+            </p>
+
+            <div class="bg-white p-8 rounded-xl shadow-lg">
+                <h3 class="text-2xl font-semibold text-center mb-8">信息层级：从信号到噪音</h3>
+                <p class="text-center text-gray-500 mb-10">一个成功的聚合器必须超越简单的内容汇集，建立一个能够区分“信号”与“噪音”的信息层级体系。点击下方不同层级，可以查看其详细说明。</p>
+                <div class="space-y-4 max-w-2xl mx-auto" id="info-hierarchy-container">
+                </div>
+            </div>
+        </section>
+
+        <section id="explorer" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-4">信息源浏览器</h2>
+            <p class="max-w-3xl mx-auto text-center text-gray-600 mb-12">
+                平台的价值核心在于其信息覆盖的广度与深度。这里汇集了全球范围内关键的信息来源，涵盖权威财经媒体、专业区块链新闻机构以及市场意见领袖（KOLs）。您可以通过下方的筛选器，互动探索这些关键的信息节点。
+            </p>
+            <div class="flex justify-center space-x-2 md:space-x-4 mb-10">
+                <button class="filter-btn active bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full" data-filter="all">全部</button>
+                <button class="filter-btn bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full" data-filter="tradfi">传统财经 (TradFi)</button>
+                <button class="filter-btn bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full" data-filter="web3">区块链 (Web3)</button>
+                <button class="filter-btn bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full" data-filter="kol">意见领袖 (KOL)</button>
+            </div>
+            <div id="source-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            </div>
+        </section>
+
+        <section id="blueprint" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-4">聚合器实施蓝图</h2>
+            <p class="max-w-3xl mx-auto text-center text-gray-600 mb-12">
+                为确保项目的可行性和资源的有效利用，我们建议采用分阶段、分层次的内容 sourcing 策略。这个互动式蓝图清晰地展示了从基础功能到高级数据分析的演进路径。点击每个阶段以展开查看其核心目标与技术实现。
+            </p>
+            <div class="relative">
+                <div class="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gray-300 -translate-y-1/2"></div>
+                <div id="blueprint-container" class="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                </div>
+            </div>
+        </section>
+
+        <section id="considerations" class="scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-4">核心挑战与技术考量</h2>
+            <p class="max-w-3xl mx-auto text-center text-gray-600 mb-12">
+                构建一个强大的聚合平台，不仅需要全面的内容覆盖，还需稳健的技术架构和对法律道德的严格遵守。本节概述了推荐的技术架构，并通过图表展示了不同内容集成方式的分布，同时强调了合规运营的重要性。
+            </p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <div class="bg-white p-8 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-4">推荐技术架构</h3>
+                    <ul class="space-y-4 text-gray-700">
+                        <li class="flex items-start">
+                            <span class="text-[#8c734b] font-bold mr-3 mt-1">➔</span>
+                            <div>
+                                <h4 class="font-semibold">数据采集引擎</h4>
+                                <p class="text-sm text-gray-500">支持RSS、REST API及实时流处理，高效获取多源异构数据。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-[#8c734b] font-bold mr-3 mt-1">➔</span>
+                            <div>
+                                <h4 class="font-semibold">NLP处理管道</h4>
+                                <p class="text-sm text-gray-500">平台的“大脑”，负责数据清洗、实体提取、情感分析和智能分类。</p>
+                            </div>
+                        </li>
+                         <li class="flex items-start">
+                            <span class="text-[#8c734b] font-bold mr-3 mt-1">➔</span>
+                            <div>
+                                <h4 class="font-semibold">数据库与API层</h4>
+                                <p class="text-sm text-gray-500">高并发存储与快速查询，为前端提供结构化的数据服务。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-[#8c734b] font-bold mr-3 mt-1">➔</span>
+                            <div>
+                                <h4 class="font-semibold">前端应用</h4>
+                                <p class="text-sm text-gray-500">提供强大的个性化功能，如自定义信息流、高级筛选和关键词提醒。</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-semibold mb-4 text-center">技术集成方式分布</h3>
+                    <div class="chart-container">
+                        <canvas id="techIntegrationChart"></canvas>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 bg-white p-8 rounded-xl shadow-lg">
+                     <h3 class="text-2xl font-semibold mb-4">法律与道德考量</h3>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700">
+                        <div>
+                            <h4 class="font-semibold">✓ 遵守服务条款</h4>
+                            <p class="text-sm text-gray-500">严格遵守各平台的API使用协议和内容抓取政策。</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold">✓ 版权与合理使用</h4>
+                            <p class="text-sm text-gray-500">仅显示标题和摘要，并提供清晰的原文链接，绝不全文转载。</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold">✓ API成本控制</h4>
+                            <p class="text-sm text-gray-500">设计频率限制和预算监控机制，避免服务中断和成本超支。</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold">✓ 明确署名</h4>
+                            <p class="text-sm text-gray-500">为每条内容提供清晰的来源署名，尊重创作者并建立品牌信誉。</p>
+                        </div>
+                     </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-white mt-16 border-t">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-500">
+            <p>&copy; 2025 财经与Web3新闻聚合平台战略蓝图. All Rights Reserved.</p>
+            <p class="text-sm mt-2">此应用是基于源报告的互动式可视化呈现。</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            const data = {
+                hierarchy: [
+                    { tier: 4, title: '第四层：市场情绪与实时讨论', content: '信息流速最快、也最嘈杂的一层，主要由X、Reddit等社交平台构成。它反映了市场的即时情绪、新兴叙事和社区热点，对于捕捉短期市场动态至关重要，但需要进行严格的过滤以剔除噪音。', color: 'bg-red-100', textColor: 'text-red-800', borderColor: 'border-red-300' },
+                    { tier: 3, title: '第三层：专家分析与KOL洞察', content: '包含来自特定领域专家的深度分析。这些专家通常通过Substack、个人博客或社交媒体等平台发布长篇分析文章，提供超越新闻报道的独到见解。', color: 'bg-yellow-100', textColor: 'text-yellow-800', borderColor: 'border-yellow-300' },
+                    { tier: 2, title: '第二层：专业新闻与深度报道', content: '由具有公信力的专业媒体机构构成，如彭博社、路透社、CoinDesk等。它们对原始数据进行核实、分析和情境化处理，提供结构化的新闻报道和深度分析。', color: 'bg-blue-100', textColor: 'text-blue-800', borderColor: 'border-blue-300' },
+                    { tier: 1, title: '第一层：基础事实与原始数据', content: '信息金字塔的基石，包括最直接、最客观的数据来源。例如，SEC的公开文件、上市公司财报、以及区块链上的交易数据。这些是无可争议的事实基础。', color: 'bg-green-100', textColor: 'text-green-800', borderColor: 'border-green-300' }
+                ],
+                sources: [
+                    { name: 'Bloomberg', category: 'tradfi', desc: '金融信息服务的黄金标准，提供实时市场数据、新闻和分析。', lang: '英文' },
+                    { name: 'Reuters', category: 'tradfi', desc: '全球最大的多媒体新闻机构之一，以中立和严谨著称。', lang: '英文' },
+                    { name: 'The Wall Street Journal', category: 'tradfi', desc: '在商业和企业报道领域享有盛誉，尤其关注美国市场。', lang: '英文' },
+                    { name: 'Financial Times', category: 'tradfi', desc: '以独特的全球视角著称，特别是对欧洲和亚洲市场的洞察。', lang: '英文' },
+                    { name: '财新网 (Caixin)', category: 'tradfi', desc: '中国最具独立性和调查深度的财经媒体之一。', lang: '中文' },
+                    { name: '新浪财经 (Sina Finance)', category: 'tradfi', desc: '中国领先的综合性金融信息门户，反映广大投资者情绪。', lang: '中文' },
+                    { name: 'CoinDesk', category: 'web3', desc: '加密货币领域历史最悠久、最受尊敬的媒体之一。', lang: '英文' },
+                    { name: 'Cointelegraph', category: 'web3', desc: '以广泛的报道范围和独特的漫画艺术风格而著称。', lang: '英文' },
+                    { name: 'The Block', category: 'web3', desc: '为机构受众提供高质量的研究、数据和深度分析。', lang: '英文' },
+                    { name: 'Decrypt', category: 'web3', desc: '由ConsenSys孵化，在报道Web3和以太坊生态方面有优势。', lang: '英文' },
+                    { name: '币界网 (528btc.com)', category: 'web3', desc: '面向Web3创作者和爱好者的内容平台，提供前沿资讯。', lang: '中文' },
+                    { name: 'Binance', category: 'web3', desc: '全球最大的加密货币交易所，其公告和研究是重要信息源。', lang: '多语言' },
+                    { name: 'Vitalik Buterin', category: 'kol', desc: '以太坊联合创始人，以太坊技术路线图和哲学思考的源头。', platform: 'X, Blog' },
+                    { name: 'Chris Dixon (a16z)', category: 'kol', desc: '顶级VC，其投资和评论是判断行业热点的重要风向标。', platform: 'X, Blog' },
+                    { name: 'Balaji Srinivasan', category: 'kol', desc: '著名投资人，对技术、社会和未来趋势有深刻思考。', platform: 'X, Blog' },
+                    { name: 'Elon Musk', category: 'kol', desc: '其言论能直接且剧烈地影响特定加密资产价格，是市场变量。', platform: 'X' }
+                ],
+                blueprint: [
+                    { phase: '第一层', title: '基础层 (MVP)', desc: '此阶段的目标是快速上线一个功能最小化的可行产品（MVP），核心是实现广泛的内容覆盖。', tech: '主要依赖RSS订阅，为权威财经和加密媒体建立稳定的轮询和抓取机制。', output: '一个基础但全面的新闻聚合器，能够同时展示来自TradFi和Web3世界的主流新闻。' },
+                    { phase: '第二层', title: '实时层', desc: '此阶段的重点是引入实时性和市场情绪，这对于加密领域尤为重要。', tech: '集成X API，并根据核心加密KOL名单，建立一个专门的实时监控和信息流。', output: '平台增加了捕捉市场即时动态和社区热点的能力，显著提升了对加密用户的价值。' },
+                    { phase: '第三层', title: '深度洞察层', desc: '此阶段旨在增加内容的深度和分析价值，提供超越新闻的独到观点。', tech: '系统性地整合来自顶级KOL的Substack和其他长篇分析博客的RSS源。', output: '平台成为一个不仅提供新闻，还提供深度研究和独到观点的知识库。' },
+                    { phase: '第四层', title: '高级数据层', desc: '此阶段的目标是构建差异化的、数据驱动的高级功能，并可能以此为基础建立付费订阅模式。', tech: '逐步集成来自CoinDesk、The Block等机构的付费API，开发高级图表、链上数据分析等功能。', output: '平台从一个新闻聚合器，演变为一个综合性的金融市场情报和分析工具。' }
+                ]
+            };
+
+            const hierarchyContainer = document.getElementById('info-hierarchy-container');
+            data.hierarchy.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `border-l-4 p-4 rounded-r-lg cursor-pointer ${item.color} ${item.borderColor}`;
+                div.innerHTML = `<h4 class="font-semibold ${item.textColor}">${item.title}</h4><p class="text-sm text-gray-600 mt-2 hidden">${item.content}</p>`;
+                hierarchyContainer.appendChild(div);
+                div.addEventListener('click', () => {
+                    const content = div.querySelector('p');
+                    content.classList.toggle('hidden');
+                });
+            });
+
+            const sourceGrid = document.getElementById('source-grid');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            
+            function renderSources(filter) {
+                sourceGrid.innerHTML = '';
+                const filteredSources = filter === 'all' ? data.sources : data.sources.filter(s => s.category === filter);
+                
+                filteredSources.forEach(source => {
+                    const card = document.createElement('div');
+                    card.className = 'source-card bg-white p-6 rounded-lg shadow-sm';
+                    card.setAttribute('data-category', source.category);
+                    
+                    let details = '';
+                    if (source.lang) {
+                        details = `<span class="text-xs font-semibold ${source.lang === '中文' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'} py-1 px-2 rounded-full">${source.lang}</span>`;
+                    } else if (source.platform) {
+                        details = `<span class="text-xs font-semibold bg-gray-100 text-gray-800 py-1 px-2 rounded-full">${source.platform}</span>`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="text-lg font-bold text-gray-800">${source.name}</h4>
+                            ${details}
+                        </div>
+                        <p class="text-gray-600 text-sm">${source.desc}</p>
+                    `;
+                    sourceGrid.appendChild(card);
+                });
+            }
+
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderSources(btn.dataset.filter);
+                });
+            });
+
+            renderSources('all');
+
+            const blueprintContainer = document.getElementById('blueprint-container');
+            data.blueprint.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'phase-card bg-white p-6 rounded-lg shadow-md cursor-pointer';
+                card.innerHTML = `
+                    <div class="flex items-center mb-4">
+                        <span class="bg-[#8c734b] text-white text-sm font-bold w-8 h-8 flex items-center justify-center rounded-full mr-4">${index + 1}</span>
+                        <h4 class="text-xl font-bold">${item.title}</h4>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">${item.desc}</p>
+                    <div class="blueprint-details hidden mt-4 pt-4 border-t border-gray-200">
+                        <p class="text-sm mb-2"><strong class="font-semibold">技术实现:</strong> ${item.tech}</p>
+                        <p class="text-sm"><strong class="font-semibold">产出:</strong> ${item.output}</p>
+                    </div>
+                `;
+                blueprintContainer.appendChild(card);
+                card.addEventListener('click', () => {
+                    card.querySelector('.blueprint-details').classList.toggle('hidden');
+                });
+            });
+
+            const ctx = document.getElementById('techIntegrationChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['RSS 订阅', '付费/企业级 API', '社交媒体 API (X)', '网页抓取 (备用)'],
+                    datasets: [{
+                        label: '技术集成方式',
+                        data: [45, 25, 20, 10],
+                        backgroundColor: [
+                            'rgba(140, 115, 75, 0.8)',
+                            'rgba(165, 138, 92, 0.8)',
+                            'rgba(199, 175, 131, 0.8)',
+                            'rgba(216, 203, 179, 0.8)'
+                        ],
+                        borderColor: [
+                            '#f8f7f4',
+                            '#f8f7f4',
+                            '#f8f7f4',
+                            '#f8f7f4'
+                        ],
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    family: "'Inter', 'Noto Sans SC', sans-serif"
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const navLinks = document.querySelectorAll('a.nav-link');
+            const sections = document.querySelectorAll('section');
+            const mobileNav = document.getElementById('mobile-nav');
+
+            function changeActiveLink() {
+                let index = sections.length;
+                while(--index && window.scrollY + 100 < sections[index].offsetTop) {}
+                
+                navLinks.forEach((link) => link.classList.remove('active'));
+                if (index >= 0 && navLinks[index]) {
+                  navLinks[index].classList.add('active');
+                  mobileNav.value = navLinks[index].getAttribute('href');
+                }
+            }
+
+            window.addEventListener('scroll', changeActiveLink);
+            changeActiveLink();
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+            
+            mobileNav.addEventListener('change', (e) => {
+                const targetId = e.target.value;
+                document.querySelector(targetId).scrollIntoView({ behavior: 'smooth' });
+            });
+
+        });
+    </script>
+</body>
+</html>
