@@ -1,0 +1,8 @@
+<svg width="200" height="200" viewBox="0 0 24 24" role="img" aria-label="BlockNews cube N" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Cube outline -->
+    <path d="M12 3L19 7V17L12 21L5 17V7L12 3Z"/>
+    <!-- N inside -->
+    <path d="M8 8V16M8 8L16 16M16 8V16"/>
+  </g>
+</svg>
