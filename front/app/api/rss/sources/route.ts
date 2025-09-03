@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAllSources, getSourceStats } from '@/lib/supabase';
+import { getAllSources, getSourceStats } from '@/db_lib/supabase';
 
 export async function GET() {
   try {

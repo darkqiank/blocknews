@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getArticlesBySource } from '@/lib/supabase';
-import { generateSourceArticlesFeed, generateRSSXML } from '@/lib/rss-generator';
+import { getArticlesBySource } from '@/db_lib/supabase';
+import { generateSourceArticlesFeed, generateRSSXML } from '@/db_lib/rss-generator';
 
 interface Params {
   source: string;

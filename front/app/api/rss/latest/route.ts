@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getLatestArticles } from '@/lib/supabase';
-import { generateLatestArticlesFeed, generateRSSXML } from '@/lib/rss-generator';
+import { getLatestArticles } from '@/db_lib/supabase';
+import { generateLatestArticlesFeed, generateRSSXML } from '@/db_lib/rss-generator';
 
 export async function GET() {
   try {
