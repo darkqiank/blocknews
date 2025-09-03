@@ -196,6 +196,8 @@ __all__ = ['get_links', 'get_content', 'fetch_url','a_fetch_url', 'BASE_URL']
 
     "get_content.py": """from readability import Document
 from bs4 import BeautifulSoup
+from datetime import datetime
+
 def get_content(_content):
     doc = Document(_content)
     # 获取文章的标题
@@ -205,9 +207,10 @@ def get_content(_content):
     inner_text = soup.get_text(separator='\\n')  # Using separator for better readability
     return {
         "title": title,
-        "pub_date": "",
+        "pub_date": datetime.now().strftime("%Y-%m-%d"),
         "content": inner_text   
     }
+
 """,
     "fetch_url.py": """
 {fetch_url_repr}"""
@@ -215,6 +218,7 @@ def get_content(_content):
 
 FETCH_TEMPLATES_BY_READABILITY = """from fast_readability import Readability
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 def get_content(_content):
     reader = Readability()
@@ -224,6 +228,6 @@ def get_content(_content):
     inner_text = soup.get_text(separator='\n')  # Using separator for better readability
     return {
         "title": result.get("title", ""),
-        "pub_date": "",
+        "pub_date": datetime.now().strftime("%Y-%m-%d"),
         "content": inner_text   
     }"""
