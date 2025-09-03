@@ -31,7 +31,9 @@ export async function GET(
     }
 
     // Get the base URL from the request
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    // const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const url = new URL(request.url);
+    const baseUrl = `${url.protocol}//${url.host}`;
     
     // Generate RSS feed for this source
     const feed = generateSourceArticlesFeed(articles, decodedSource, baseUrl);

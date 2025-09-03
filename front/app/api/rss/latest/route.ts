@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getLatestArticles } from '@/db_lib/supabase';
 import { generateLatestArticlesFeed, generateRSSXML } from '@/db_lib/rss-generator';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     // Get latest 30 articles from Supabase
     const articles = await getLatestArticles(30);
@@ -21,7 +21,8 @@ export async function GET() {
     }
 
     // Get the base URL from the request
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const url = new URL(request.url);
+    const baseUrl = `${url.protocol}//${url.host}`;
     
     // Generate RSS feed
     const feed = generateLatestArticlesFeed(articles, baseUrl);
