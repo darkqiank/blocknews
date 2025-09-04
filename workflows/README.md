@@ -70,6 +70,10 @@ python workflows/news_crawler.py --db-type postgresql \
 python workflows/news_crawler.py --db-type supabase \
   --supabase-url https://your-project.supabase.co \
   --supabase-key your-anon-key
+
+python workflows/news_crawler.py --db-type supabase \
+  --supabase-url $SUPABASE_URL \
+  --supabase-key $SUPABASE_KEY
 ```
 
 ## 📊 测试结果
