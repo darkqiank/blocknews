@@ -18,3 +18,9 @@ aiofiles>=23.0.0
 
 # 日志和工具
 pathlib2; python_version < "3.4"
+
+python-dotenv
+feedparser
+fast-readability
+html5lib
+readability-lxml

@@ -66,6 +66,8 @@ python workflows/news_crawler.py --db-type postgresql \
   --pg-host localhost --pg-database news \
   --pg-user postgres --pg-password yourpassword
 
+ python workflows/news_crawler.py --db-type postgresql --pg-host $DB_HOST --pg-database $DB_DATABASE --pg-user $DB_USER  --pg-password $DB_PASSWD
+
 # 使用Supabase数据库
 python workflows/news_crawler.py --db-type supabase \
   --supabase-url https://your-project.supabase.co \
