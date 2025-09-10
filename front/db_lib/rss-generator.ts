@@ -7,6 +7,8 @@ export interface RSSItem {
   pubDate: string;
   guid: string;
   source: string;
+  id?: number;
+  created_at?: string;
 }
 
 export interface RSSFeed {
@@ -26,7 +28,9 @@ export function articleToRSSItem(article: Article): RSSItem {
     // pubDate: new Date(article.pub_date || article.created_at).toUTCString(),
     pubDate: new Date(article.created_at).toUTCString(),
     guid: article.url_hash,
-    source: article.source
+    source: article.source,
+    id: article.id,
+    created_at: article.created_at
   };
 }
 
@@ -40,10 +44,12 @@ export function generateRSSXML(feed: RSSFeed): string {
       <pubDate>${item.pubDate}</pubDate>
       <guid isPermaLink="true">${item.link}</guid>
       <source><![CDATA[${item.source}]]></source>
+      <bn:id>${item.id ?? ''}</bn:id>
+      <bn:created_at>${item.created_at ?? ''}</bn:created_at>
     </item>`).join('');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:bn="https://blocknews.local/ns">
   <channel>
     <title><![CDATA[${feed.title}]]></title>
     <description><![CDATA[${feed.description}]]></description>

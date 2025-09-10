@@ -14,9 +14,9 @@ interface NewsItem {
   description?: string;
 }
 
-interface SourceStats {
+interface SourceItem {
   source: string;
-  count: number;
+  label: string;
   rssUrl: string;
 }
 
@@ -24,11 +24,11 @@ interface SourceStats {
 const SOURCES_CACHE_KEY = 'bn_sources_cache';
 const SOURCES_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
-function loadSourcesCache(): SourceStats[] | null {
+function loadSourcesCache(): SourceItem[] | null {
   try {
     const raw = localStorage.getItem(SOURCES_CACHE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as { sources: SourceStats[]; expireAt: number };
+    const parsed = JSON.parse(raw) as { sources: SourceItem[]; expireAt: number };
     if (Date.now() > parsed.expireAt) return null;
     return parsed.sources;
   } catch {
@@ -36,7 +36,7 @@ function loadSourcesCache(): SourceStats[] | null {
   }
 }
 
-function saveSourcesCache(sources: SourceStats[]) {
+function saveSourcesCache(sources: SourceItem[]) {
   try {
     const payload = { sources, expireAt: Date.now() + SOURCES_CACHE_TTL_MS };
     localStorage.setItem(SOURCES_CACHE_KEY, JSON.stringify(payload));
@@ -90,18 +90,25 @@ const PageHeader = ({
 
 export default function NewsList() {
   const [news, setNews] = useState<NewsItem[]>([]);
-  const [sources, setSources] = useState<SourceStats[]>([]);
+  const [sources, setSources] = useState<SourceItem[]>([]);
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingSources, setLoadingSources] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState<boolean>(false);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
 
   useEffect(() => {
     fetchSources();
   }, []);
 
   useEffect(() => {
-    fetchNews(selectedSource);
+    // Reset list when source changes
+    setNews([]);
+    setNextCursor(null);
+    setHasMore(false);
+    fetchNews(selectedSource, undefined, true);
   }, [selectedSource]);
 
   const fetchSources = async () => {
@@ -129,26 +136,34 @@ export default function NewsList() {
       console.error('Error fetching sources:', err);
       // Use cached data if available, otherwise show error
       if (!sources.length) {
-        setError('Failed to load news sources');
+        setError('来源加载失败');
       }
     } finally {
       setLoadingSources(false);
     }
   };
 
-  const fetchNews = async (source: string | null) => {
+  const fetchNews = async (
+    source: string | null,
+    cursor?: string,
+    replace: boolean = false
+  ) => {
     try {
-      setLoading(true);
+      if (replace) setLoading(true);
+      else setLoadingMore(true);
       setError(null);
+      const limit = 20;
+      const params = new URLSearchParams();
+      params.set('limit', String(limit));
+      if (cursor) params.set('before_id', cursor);
 
-      // Determine which RSS feed to use
-      const feedUrl = source 
-        ? `/api/rss/source/${encodeURIComponent(source)}`
-        : '/api/rss/latest';
+      const feedUrl = source
+        ? `/api/rss/source/${encodeURIComponent(source)}?${params.toString()}`
+        : `/api/rss/latest?${params.toString()}`;
 
       const response = await fetch(feedUrl);
       if (!response.ok) {
-        throw new Error('Failed to fetch news');
+        throw new Error('新闻加载失败');
       }
 
       // Parse RSS XML
@@ -166,13 +181,25 @@ export default function NewsList() {
         description: item.querySelector('description')?.textContent?.replace('<![CDATA[', '').replace(']]>', '') || ''
       }));
 
-      setNews(newsItems);
+      setNews(prev => (replace ? newsItems : [...prev, ...newsItems]));
+      // Compute next cursor from the last item's bn:id
+      const lastItem = items[items.length - 1] as Element | undefined;
+      const lastIdText = lastItem?.querySelector('bn\\:id')?.textContent || lastItem?.querySelector('id')?.textContent || '';
+      const next = lastIdText && /^[0-9]+$/.test(lastIdText) ? lastIdText : null;
+      setNextCursor(next);
+      setHasMore(newsItems.length === limit);
     } catch (err) {
       console.error('Error fetching news:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch news');
+      setError(err instanceof Error ? err.message : '新闻加载失败');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
+  };
+
+  const loadMore = () => {
+    if (!hasMore || loadingMore) return;
+    fetchNews(selectedSource, nextCursor || undefined, false);
   };
 
   const formatDate = (dateString: string) => {
@@ -217,10 +244,9 @@ export default function NewsList() {
                   ? 'bg-primary text-primary-foreground' 
                   : 'bg-transparent hover:bg-muted'
               }`}
-              title={`查看 ${s.source} 的新闻 (${s.count} 篇)`}
+              title={`查看 ${s.label} 的新闻`}
             >
-              {s.source}
-              <span className="ml-1 text-xs opacity-60">({s.count})</span>
+              {s.label}
             </button>
           ))
         )}
@@ -346,15 +372,19 @@ export default function NewsList() {
               </Card>
             ))}
 
-            {/* 刷新按钮 */}
+            {/* 加载更多 */}
             <div className="text-center pt-8">
-              <button 
-                onClick={() => fetchNews(selectedSource)}
-                disabled={loading}
-                className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? '加载中...' : '刷新新闻'}
-              </button>
+              {hasMore ? (
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingMore ? '加载中...' : '加载更多'}
+                </button>
+              ) : (
+                <span className="text-sm text-muted-foreground">没有更多了</span>
+              )}
             </div>
           </div>
         )}

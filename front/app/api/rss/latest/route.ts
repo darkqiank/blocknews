@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
-import { getLatestArticles } from '@/db_lib/supabase';
+import { getPagedArticles } from '@/db_lib/supabase';
 import { generateLatestArticlesFeed, generateRSSXML } from '@/db_lib/rss-generator';
 
 export async function GET(request: Request) {
   try {
-    // Get latest 30 articles from Supabase
-    const articles = await getLatestArticles(30);
+    const { searchParams } = new URL(request.url);
+    const before = searchParams.get('before') || undefined;
+    const beforeIdParam = searchParams.get('before_id');
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam ? Math.max(1, Math.min(50, parseInt(limitParam, 10))) : 30;
+
+    const beforeId = beforeIdParam ? parseInt(beforeIdParam, 10) : undefined;
+    const { items: articles } = await getPagedArticles({ limit, before, beforeId });
     
     if (articles.length === 0) {
       return new NextResponse(

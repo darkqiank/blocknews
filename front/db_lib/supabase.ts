@@ -65,6 +65,54 @@ export async function getArticlesBySource(source: string, limit: number = 30): P
   return data || [];
 }
 
+export interface PagedArticlesParams {
+  source?: string;
+  limit?: number;
+  before?: string; // ISO timestamp (fallback)
+  beforeId?: number; // Prefer precise id-based cursor
+}
+
+export interface PagedArticlesResult {
+  items: Article[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+export async function getPagedArticles(params: PagedArticlesParams = {}): Promise<PagedArticlesResult> {
+  const { source, limit = 20, before, beforeId } = params;
+  const pageSize = Math.max(1, Math.min(50, limit));
+
+  let query = supabase
+    .from('articles')
+    .select('*')
+    .order('id', { ascending: false })
+    .limit(pageSize + 1);
+
+  if (source) {
+    query = query.eq('source', source);
+  }
+  if (beforeId !== undefined && beforeId !== null) {
+    query = query.lt('id', beforeId);
+  } else if (before) {
+    query = query.lt('created_at', before);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching paged articles:', error);
+    return { items: [], nextCursor: null, hasMore: false };
+  }
+
+  const rows = data || [];
+  const hasMore = rows.length > pageSize;
+  const items = hasMore ? rows.slice(0, pageSize) : rows;
+  const last = items[items.length - 1] || null;
+  const nextCursor = last ? String(last.id) : null;
+
+  return { items, nextCursor, hasMore };
+}
+
 export async function getAllSources(): Promise<string[]> {
   const { data, error } = await supabase
     .from('articles')

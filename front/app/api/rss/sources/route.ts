@@ -1,31 +1,24 @@
 import { NextResponse } from 'next/server';
-import { getAllSources, getSourceStats } from '@/db_lib/supabase';
+import sourceMap from '@/public/source_map.json';
 
 export async function GET() {
   try {
-    // Get all available sources and their stats
-    const [sources, stats] = await Promise.all([
-      getAllSources(),
-      getSourceStats()
-    ]);
-
-    const sourceData = sources.map(source => {
-      const stat = stats.find(s => s.source === source);
-      return {
-        source,
-        count: stat?.count || 0,
-        rssUrl: `/api/rss/source/${encodeURIComponent(source)}`
-      };
-    });
+    // Build sources from public/source_map.json
+    const entries = Object.entries(sourceMap as Record<string, string>);
+    const sources = entries.map(([key, label]) => ({
+      source: key,
+      label,
+      rssUrl: `/api/rss/source/${encodeURIComponent(key)}`,
+    }));
 
     return NextResponse.json({
-      sources: sourceData,
+      sources,
       latestRssUrl: '/api/rss/latest'
     });
   } catch (error) {
-    console.error('Error fetching RSS sources:', error);
+    console.error('Error building RSS sources:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch RSS sources' },
+      { error: 'Failed to build RSS sources' },
       { status: 500 }
     );
   }

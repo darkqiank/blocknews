@@ -7,12 +7,13 @@ import { ExternalLink, Rss, Copy, Check } from 'lucide-react';
 
 interface SourceData {
   source: string;
-  count: number;
+  label: string;
   rssUrl: string;
 }
 
 interface RSSSourcesResponse {
-  sources: SourceData[];
+  sources: 
+  SourceData[];
   latestRssUrl: string;
 }
 
@@ -174,10 +175,7 @@ export default function RSSPage() {
                   <div key={source.source}>
                     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">{source.source}</h3>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {source.count} 篇文章
-                        </p>
+                        <h3 className="font-medium text-gray-900">{source.label}</h3>
                         <p className="text-xs text-gray-400 font-mono break-all mt-1">
                           {window.location.origin}{source.rssUrl}
                         </p>
