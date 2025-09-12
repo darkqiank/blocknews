@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { TweetCard } from '@/components/ui/tweet-card';
@@ -186,13 +187,16 @@ export function XDataDemo() {
                     }`}
                   >
                     <div className="relative mr-3">
-                      <img
+                      <Image
                         src={user.avatar || `${process.env.NEXT_PUBLIC_BASE_IMAGES_URL || '/avatars/'}${user.user_id}.png`}
                         alt={user.user_name}
+                        width={40}
+                        height={40}
                         className="w-10 h-10 rounded-full bg-gray-200 border"
                         onError={(e) => {
-                          e.currentTarget.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23e5e7eb"/><text x="20" y="25" text-anchor="middle" fill="%236b7280" font-size="12">${user.user_name.charAt(0).toUpperCase()}</text></svg>`;
+                          (e.currentTarget as HTMLImageElement).src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23e5e7eb"/><text x="20" y="25" text-anchor="middle" fill="%236b7280" font-size="12">${user.user_name.charAt(0).toUpperCase()}</text></svg>`;
                         }}
+                        unoptimized
                       />
                       <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
                         user.expire ? 'bg-red-400' : 'bg-green-400'

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { ExternalLink } from 'lucide-react';
 import { XData } from '@/db_lib/supabase';
 
@@ -36,7 +37,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
   
   // 构建原文链接
   const getOriginalUrl = (): string | null => {
-    const base = item.user_link as string | undefined;
+    const base = item.user_link;
     if (!base) return null;
     const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
     const xid = item.x_id || '';
@@ -117,14 +118,17 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
               {Object.entries(medias).map(([, mediaLinks]) =>
                 mediaLinks.map((media: string, index: number) => (
                   <div key={index} className="relative">
-                    <img
+                    <Image
                       src={media}
                       alt="媒体内容"
+                      width={200}
+                      height={96}
                       className="w-full h-24 object-cover rounded-lg border cursor-zoom-in"
                       onClick={() => setPreviewImage(media)}
                       onError={(e) => {
-                        e.currentTarget.src = '/placeholder-image.png';
+                        (e.currentTarget as HTMLImageElement).src = '/placeholder-image.png';
                       }}
+                      unoptimized
                     />
                   </div>
                 ))
@@ -136,6 +140,32 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     );
   };
 
+  // 提取展示的创建时间，避免使用 any
+  const getDisplayCreatedAt = (x: XData): string => {
+    const rawData: unknown = x.data;
+    let createdAt: string | undefined;
+    if (Array.isArray(rawData)) {
+      const first = rawData[0] as unknown;
+      if (first && typeof first === 'object' && first !== null) {
+        const firstObj = first as Record<string, unknown>;
+        const nested = firstObj['data'];
+        if (nested && typeof nested === 'object' && nested !== null) {
+          const val = (nested as Record<string, unknown>)['created_at'];
+          if (typeof val === 'string') {
+            createdAt = val;
+          }
+        }
+      }
+    } else if (rawData && typeof rawData === 'object') {
+      const val = (rawData as Record<string, unknown>)['created_at'];
+      if (typeof val === 'string') {
+        createdAt = val;
+      }
+    }
+    const finalVal = createdAt ?? x.created_at;
+    return new Date(finalVal).toLocaleString('zh-CN');
+  };
+
   return (
     <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
       {/* 头部信息 */}
@@ -143,15 +173,18 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         <div className="flex items-center space-x-3">
           {/* 用户头像 */}
           {item.user_id && (
-            <img
+            <Image
               src={getAvatarUrl()}
               alt={currentUser?.user_name || item.username || '用户'}
+              width={40}
+              height={40}
               className="w-10 h-10 rounded-full bg-gray-200 border"
               onError={(e) => {
                 // 使用与用户列表相同的错误处理逻辑
                 const userName = currentUser?.user_name || item.username || '用户';
-                e.currentTarget.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23e5e7eb"/><text x="20" y="25" text-anchor="middle" fill="%236b7280" font-size="12">${userName.charAt(0).toUpperCase()}</text></svg>`;
+                (e.currentTarget as HTMLImageElement).src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23e5e7eb"/><text x="20" y="25" text-anchor="middle" fill="%236b7280" font-size="12">${userName.charAt(0).toUpperCase()}</text></svg>`;
               }}
+              unoptimized
             />
           )}
           
@@ -177,11 +210,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         
         {/* 时间与原文链接 */}
         <div className="flex items-center gap-2 text-xs text-gray-400">
-          <span>
-            {new Date(
-              (item as any).data?.created_at ?? (item as any).data?.[0]?.data?.created_at ?? item.created_at
-            ).toLocaleString('zh-CN')}
-          </span>
+          <span>{getDisplayCreatedAt(item)}</span>
           {originalUrl && (
             <a
               href={originalUrl}
@@ -231,14 +260,17 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
           className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
           onClick={() => setPreviewImage(null)}
         >
-          <img
+          <Image
             src={previewImage}
             alt="预览"
-            className="max-h-[90vh] max-w-[90vw] rounded shadow-xl cursor-zoom-out"
+            width={800}
+            height={600}
+            className="max-h-[90vh] max-w-[90vw] rounded shadow-xl cursor-zoom-out object-contain"
             onClick={() => setPreviewImage(null)}
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).src = '/placeholder-image.png';
             }}
+            unoptimized
           />
         </div>
       )}
