@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { ExternalLink, Calendar, Globe, Rss } from 'lucide-react';
+import { ExternalLink, Calendar, Globe } from 'lucide-react';
 
 // Types
 interface NewsItem {
@@ -135,6 +134,7 @@ export default function NewsList() {
 
   useEffect(() => {
     fetchSources();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -145,7 +145,7 @@ export default function NewsList() {
     fetchNews(selectedSource, undefined, true);
   }, [selectedSource]);
 
-  const fetchSources = async () => {
+  const fetchSources = useCallback(async () => {
     try {
       setLoadingSources(true);
       // Try cache first
@@ -175,7 +175,7 @@ export default function NewsList() {
     } finally {
       setLoadingSources(false);
     }
-  };
+  }, [sources.length]);
 
   const fetchNews = async (
     source: string | null,

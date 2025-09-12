@@ -36,23 +36,27 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
   };
   
   // 渲染推文内容
-  const renderTweetContent = (data: any, isSubItem: boolean = false) => {
+  const renderTweetContent = (data: Record<string, unknown>, isSubItem: boolean = false) => {
+    const fullText = data.full_text as string;
+    const urls = data.urls as Record<string, string[]>;
+    const medias = data.medias as Record<string, string[]>;
+    
     return (
       <div className={`${isSubItem ? 'ml-4 pl-4 border-l-2 border-gray-200' : ''}`}>
-        {data.full_text && (
+        {fullText && (
           <div className="text-gray-900 mb-3 whitespace-pre-wrap">
-            {data.full_text}
+            {fullText}
           </div>
         )}
         
         {/* 链接 */}
-        {data.urls && Object.keys(data.urls).length > 0 && (
+        {urls && Object.keys(urls).length > 0 && (
           <div className="mb-3">
             <div className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full mb-2">
               链接
             </div>
             <div className="space-y-1">
-              {Object.entries(data.urls).map(([_, links]: any) =>
+              {Object.entries(urls).map(([, links]) =>
                 links
                   .filter((link: string) => link !== null)
                   .map((link: string, index: number) => (
@@ -74,13 +78,13 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         )}
         
         {/* 媒体 */}
-        {data.medias && Object.keys(data.medias).length > 0 && (
+        {medias && Object.keys(medias).length > 0 && (
           <div className="mb-3">
             <div className="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full mb-2">
               媒体
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {Object.entries(data.medias).map(([_, mediaLinks]: any) =>
+              {Object.entries(medias).map(([, mediaLinks]) =>
                 mediaLinks.map((media: string, index: number) => (
                   <div key={index} className="relative">
                     <img
@@ -166,10 +170,10 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         
         {isProfileConversation && Array.isArray(item.data) && (
           <div className="space-y-4">
-            {item.data.map((subItem: any, index: number) => (
-              <div key={subItem.x_id || index}>
+            {item.data.map((subItem: Record<string, unknown>, index: number) => (
+              <div key={(subItem.x_id as string) || index}>
                 {index > 0 && <div className="border-t pt-3 mt-3" />}
-                {renderTweetContent(subItem.data, true)}
+                {renderTweetContent(subItem.data as Record<string, unknown>, true)}
               </div>
             ))}
           </div>

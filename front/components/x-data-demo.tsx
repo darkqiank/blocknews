@@ -19,7 +19,7 @@ interface XData {
   id: number; // Auto-increment primary key
   x_id: string;
   item_type: string;
-  data: any;
+  data: Record<string, unknown>;
   username?: string;
   user_id?: string;
   user_link?: string;
@@ -40,6 +40,7 @@ export function XDataDemo() {
     fetchUsers();
     fetchLatestData();
     fetchUserStats();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export function XDataDemo() {
     fetchLatestData(true);
     setNextCursor(null);
     setHasMore(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUserId]);
 
   const fetchUsers = async () => {

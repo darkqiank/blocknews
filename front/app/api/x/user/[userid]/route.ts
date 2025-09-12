@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getXUserById, getXDataByUserId } from '@/db_lib/supabase';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     userid: string;
-  };
+  }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Get user's posts if requested
-    let posts = [];
+    let posts: Awaited<ReturnType<typeof getXDataByUserId>> = [];
     if (includePosts) {
       posts = await getXDataByUserId(userid, postsLimit);
     }
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
     });
   } catch (error) {
-    console.error(`Error in /api/x/user/${params?.userid}:`, error);
+    console.error('Error in /api/x/user/[userid]:', error);
     return NextResponse.json(
       {
         success: false,
