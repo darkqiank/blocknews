@@ -5,14 +5,12 @@
 运行spider/news下的所有模块，实现：
 1、爬取文章链接
 2、文章链接爬取后，爬取文章内容  
-3、数据存入数据库，默认使用sqlite，可指定SUPABASE、pg类型数据库
+3、数据存入数据库，默认使用sqlite，可指定pg类型数据库
 
 使用方法:
   python workflows/news_crawler.py --help
   python workflows/news_crawler.py --db-type sqlite
   python workflows/news_crawler.py --db-type postgresql --pg-host localhost --pg-database news
-  python workflows/news_crawler.py --db-type supabase --supabase-url YOUR_URL --supabase-key YOUR_KEY
-  python workflows/news_crawler.py --db-type supabase --supabase-url $SUPABASE_URL --supabase-key $SUPABASE_KEY
 """
 
 import sys
@@ -27,9 +25,9 @@ from typing import Dict, Any, Optional
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from spider.crawler_workflow import CrawlerWorkflow, AsyncCrawlerWorkflow
-from spider.db_utils import DatabaseManager
-from spider.module_discovery import discover_and_validate_modules
+from news_spider.crawler_workflow import CrawlerWorkflow, AsyncCrawlerWorkflow
+from news_spider.db_utils import DatabaseManager
+from news_spider.module_discovery import discover_and_validate_modules
 
 
 def parse_arguments():
@@ -48,10 +46,6 @@ def parse_arguments():
      --pg-host localhost --pg-port 5432 --pg-database news \\
      --pg-user postgres --pg-password yourpassword
 
-3. 使用Supabase数据库:
-   python workflows/news_crawler.py --db-type supabase \\
-     --supabase-url https://your-project.supabase.co \\
-     --supabase-key your-anon-key
 
 4. 只爬取特定模块:
    python workflows/news_crawler.py --modules www_caixin_com
@@ -70,7 +64,7 @@ def parse_arguments():
     # 基本参数
     parser.add_argument(
         '--db-type', 
-        choices=['sqlite', 'postgresql', 'pg', 'supabase'],
+        choices=['sqlite', 'postgresql', 'pg'],
         default='sqlite',
         help='数据库类型 (默认: sqlite)'
     )
@@ -155,9 +149,6 @@ def parse_arguments():
     parser.add_argument('--pg-user', help='PostgreSQL用户名')
     parser.add_argument('--pg-password', help='PostgreSQL密码')
     
-    # Supabase参数
-    parser.add_argument('--supabase-url', help='Supabase项目URL')
-    parser.add_argument('--supabase-key', help='Supabase匿名密钥')
     
     # 其他参数
     parser.add_argument(
@@ -220,12 +211,6 @@ def build_db_config(args) -> Dict[str, Any]:
             db_config['user'] = args.pg_user
         if args.pg_password:
             db_config['password'] = args.pg_password
-    
-    elif args.db_type == 'supabase':
-        if args.supabase_url:
-            db_config['url'] = args.supabase_url
-        if args.supabase_key:
-            db_config['key'] = args.supabase_key
     
     return db_config
 

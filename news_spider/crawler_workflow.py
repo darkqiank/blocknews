@@ -39,7 +39,7 @@ class CrawlerWorkflow:
         初始化爬虫工作流
         
         Args:
-            db_type: 数据库类型 (sqlite, supabase, postgresql)
+            db_type: 数据库类型 (sqlite, postgresql)
             db_config: 数据库配置
             max_workers: 最大并发数
             delay_range: 请求延迟范围(秒)

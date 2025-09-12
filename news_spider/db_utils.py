@@ -35,7 +35,7 @@ class Article:
 
 
 class DatabaseManager:
-    """数据库管理器，支持SQLite、Supabase、PostgreSQL"""
+    """数据库管理器，支持SQLite、PostgreSQL"""
     
     def __init__(self, db_type: str = "sqlite", **kwargs):
         self.db_type = db_type.lower()
@@ -45,8 +45,6 @@ class DatabaseManager:
         if self.db_type == "sqlite":
             self.db_path = kwargs.get("db_path", "spider/db/news.db")
             self._ensure_sqlite_db()
-        elif self.db_type == "supabase":
-            self._init_supabase()
         elif self.db_type in ["postgresql", "pg"]:
             self._init_postgresql()
         else:
@@ -95,23 +93,7 @@ class DatabaseManager:
         
         conn.commit()
         conn.close()
-    
-    def _init_supabase(self):
-        """初始化Supabase连接"""
-        try:
-            from supabase import create_client, Client
-            
-            url = self.kwargs.get("url") or os.getenv("SUPABASE_URL")
-            key = self.kwargs.get("key") or os.getenv("SUPABASE_KEY")
-            
-            if not url or not key:
-                raise ValueError("需要提供Supabase URL和KEY")
-            
-            self._conn = create_client(url, key)
-            print("Supabase连接已建立")
-            
-        except ImportError:
-            raise ImportError("请安装supabase: pip install supabase")
+
     
     def _init_postgresql(self):
         """初始化PostgreSQL连接"""
@@ -188,8 +170,6 @@ class DatabaseManager:
         
         if self.db_type == "sqlite":
             stored_count = self._store_links_sqlite(links, source)
-        elif self.db_type == "supabase":
-            stored_count = self._store_links_supabase(links, source)
         elif self.db_type in ["postgresql", "pg"]:
             stored_count = self._store_links_postgresql(links, source)
         
@@ -216,26 +196,6 @@ class DatabaseManager:
         
         conn.commit()
         conn.close()
-        return stored_count
-    
-    def _store_links_supabase(self, links: List[str], source: str) -> int:
-        """Supabase存储链接"""
-        stored_count = 0
-        for url in links:
-            try:
-                url_hash = hashlib.md5(url.encode()).hexdigest()
-                result = self._conn.table('links').insert({
-                    'url': url,
-                    'url_hash': url_hash,
-                    'source': source,
-                    'created_at': datetime.now().isoformat()
-                }).execute()
-                
-                if result.data:
-                    stored_count += 1
-            except Exception as e:
-                print(f"存储链接失败 {url}: {e}")
-        
         return stored_count
     
     def _store_links_postgresql(self, links: List[str], source: str) -> int:
@@ -267,8 +227,6 @@ class DatabaseManager:
         
         if self.db_type == "sqlite":
             stored_count = self._store_articles_sqlite(articles)
-        elif self.db_type == "supabase":
-            stored_count = self._store_articles_supabase(articles)
         elif self.db_type in ["postgresql", "pg"]:
             stored_count = self._store_articles_postgresql(articles)
         
@@ -301,21 +259,6 @@ class DatabaseManager:
         conn.close()
         return stored_count
     
-    def _store_articles_supabase(self, articles: List[Article]) -> int:
-        """Supabase存储文章"""
-        stored_count = 0
-        for article in articles:
-            try:
-                data = article.to_dict()
-                result = self._conn.table('articles').upsert(data).execute()
-                
-                if result.data:
-                    stored_count += 1
-            except Exception as e:
-                print(f"存储文章失败 {article.url}: {e}")
-        
-        return stored_count
-    
     def _store_articles_postgresql(self, articles: List[Article]) -> int:
         """PostgreSQL存储文章"""
         cursor = self._conn.cursor()
@@ -327,11 +270,7 @@ class DatabaseManager:
                 cursor.execute('''
                     INSERT INTO articles (url, url_hash, title, content, pub_date, source, created_at) 
                     VALUES (%(url)s, %(url_hash)s, %(title)s, %(content)s, %(pub_date)s, %(source)s, %(created_at)s)
-                    ON CONFLICT (url) DO UPDATE SET
-                        title = EXCLUDED.title,
-                        content = EXCLUDED.content,
-                        pub_date = EXCLUDED.pub_date,
-                        updated_at = CURRENT_TIMESTAMP
+                    ON CONFLICT (url) DO NOTHING 
                 ''', data)
                 if cursor.rowcount > 0:
                     stored_count += 1
@@ -345,8 +284,6 @@ class DatabaseManager:
         """获取待处理的链接"""
         if self.db_type == "sqlite":
             return self._get_pending_links_sqlite(source, limit)
-        elif self.db_type == "supabase":
-            return self._get_pending_links_supabase(source, limit)
         elif self.db_type in ["postgresql", "pg"]:
             return self._get_pending_links_postgresql(source, limit)
         return []
@@ -373,19 +310,6 @@ class DatabaseManager:
         conn.close()
         return links
     
-    def _get_pending_links_supabase(self, source: Optional[str], limit: Optional[int]) -> List[str]:
-        """Supabase获取待处理链接"""
-        query = self._conn.table('links').select('url').eq('status', 'pending')
-        
-        if source:
-            query = query.eq('source', source)
-        
-        if limit:
-            query = query.limit(limit)
-        
-        result = query.execute()
-        return [item['url'] for item in result.data]
-    
     def _get_pending_links_postgresql(self, source: Optional[str], limit: Optional[int]) -> List[str]:
         """PostgreSQL获取待处理链接"""
         cursor = self._conn.cursor()
@@ -409,8 +333,6 @@ class DatabaseManager:
         """更新链接状态"""
         if self.db_type == "sqlite":
             self._update_link_status_sqlite(url, status)
-        elif self.db_type == "supabase":
-            self._update_link_status_supabase(url, status)
         elif self.db_type in ["postgresql", "pg"]:
             self._update_link_status_postgresql(url, status)
     
@@ -422,9 +344,6 @@ class DatabaseManager:
         conn.commit()
         conn.close()
     
-    def _update_link_status_supabase(self, url: str, status: str):
-        """Supabase更新链接状态"""
-        self._conn.table('links').update({'status': status}).eq('url', url).execute()
     
     def _update_link_status_postgresql(self, url: str, status: str):
         """PostgreSQL更新链接状态"""
@@ -436,8 +355,6 @@ class DatabaseManager:
         """获取统计信息"""
         if self.db_type == "sqlite":
             return self._get_statistics_sqlite()
-        elif self.db_type == "supabase":
-            return self._get_statistics_supabase()
         elif self.db_type in ["postgresql", "pg"]:
             return self._get_statistics_postgresql()
         return {}
@@ -470,10 +387,6 @@ class DatabaseManager:
             'links_by_status': links_by_status
         }
     
-    def _get_statistics_supabase(self) -> Dict[str, Any]:
-        """Supabase获取统计信息"""
-        # 这里可以实现Supabase的统计查询
-        return {'message': 'Supabase statistics not implemented yet'}
     
     def _get_statistics_postgresql(self) -> Dict[str, Any]:
         """PostgreSQL获取统计信息"""
