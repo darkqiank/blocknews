@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import LoadingSpinner from '@/components/ui/loading-spinner';
 import { Separator } from '@/components/ui/separator';
 import { ExternalLink, Rss, Copy, Check } from 'lucide-react';
 
@@ -59,16 +60,7 @@ export default function RSSPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 pt-24 py-8">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">加载RSS源信息...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullPage message="加载RSS源信息..." />;
   }
 
   if (error) {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
+import LoadingSpinner from '@/components/ui/loading-spinner';
 import { TweetCard } from '@/components/ui/tweet-card';
 
 interface XUser {
@@ -127,16 +128,16 @@ export function XDataDemo() {
 
 
   if (loading) {
-    return <div className="p-4">Loading X data...</div>;
+    return <LoadingSpinner message="加载数据中..." />;
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* 页面标题 */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+      {/* <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">X (Twitter) 数据管理</h1>
         <p className="text-sm text-gray-600">管理和查看X平台的用户数据和推文内容</p>
-      </div>
+      </div> */}
 
       {/* 左右分栏布局 */}
       <div className="flex gap-8">
@@ -167,10 +168,6 @@ export function XDataDemo() {
                   <div className="flex-1">
                     <div className="font-medium text-gray-900">全部用户</div>
                     <div className="text-sm text-gray-500">查看所有最新数据</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-blue-600">{latestData.length}</div>
-                    <div className="text-xs text-gray-400">条数据</div>
                   </div>
                 </div>
                 

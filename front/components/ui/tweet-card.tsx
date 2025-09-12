@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { XData } from '@/db_lib/supabase';
 
@@ -20,8 +21,37 @@ interface TweetCardProps {
 }
 
 export function TweetCard({ item, users = [] }: TweetCardProps) {
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const isTweet = item.x_id.startsWith('tweet-');
   const isProfileConversation = item.x_id.startsWith('profile-conversation-');
+  
+  // 监听 ESC 关闭预览
+  useEffect(() => {
+    const keyHandler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setPreviewImage(null);
+    };
+    document.addEventListener('keydown', keyHandler);
+    return () => document.removeEventListener('keydown', keyHandler);
+  }, []);
+  
+  // 构建原文链接
+  const getOriginalUrl = (): string | null => {
+    const base = item.user_link as string | undefined;
+    if (!base) return null;
+    const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
+    const xid = item.x_id || '';
+    if (xid.startsWith('tweet-')) {
+      const tweetId = xid.substring(6);
+      if (tweetId) return `${normalizedBase}/status/${tweetId}`;
+    }
+    if (xid.startsWith('profile-conversation-tweet-')) {
+      const rest = xid.substring(27);
+      const tweetId = rest.split('-tweet-')[0];
+      if (tweetId) return `${normalizedBase}/status/${tweetId}`;
+    }
+    return null;
+  };
+  const originalUrl = getOriginalUrl();
   
   // 查找对应的用户数据以获取头像信息
   const currentUser = users.find(user => user.user_id === item.user_id);
@@ -90,7 +120,8 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
                     <img
                       src={media}
                       alt="媒体内容"
-                      className="w-full h-24 object-cover rounded-lg border"
+                      className="w-full h-24 object-cover rounded-lg border cursor-zoom-in"
+                      onClick={() => setPreviewImage(media)}
                       onError={(e) => {
                         e.currentTarget.src = '/placeholder-image.png';
                       }}
@@ -140,27 +171,28 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
                 `@${item.username || '未知用户'}`
               )}
             </div>
-            
-            {/* 类型标签 */}
-            <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                item.item_type === 'tweet' ? 'bg-blue-100 text-blue-700' :
-                item.item_type === 'profile' ? 'bg-green-100 text-green-700' :
-                'bg-purple-100 text-purple-700'
-              }`}>
-                {item.item_type === 'tweet' ? '推文' : 
-                 item.item_type === 'profile' ? '个人资料' : item.item_type}
-              </span>
-              <span>ID: {item.id}</span>
-            </div>
+
           </div>
         </div>
         
-        {/* 时间 */}
-        <div className="text-xs text-gray-400">
-          {new Date(
-            item.data.created_at ?? item.data[0]?.data?.created_at ?? item.created_at
-          ).toLocaleString('zh-CN')}
+        {/* 时间与原文链接 */}
+        <div className="flex items-center gap-2 text-xs text-gray-400">
+          <span>
+            {new Date(
+              (item as any).data?.created_at ?? (item as any).data?.[0]?.data?.created_at ?? item.created_at
+            ).toLocaleString('zh-CN')}
+          </span>
+          {originalUrl && (
+            <a
+              href={originalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="查看原文"
+              className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+            >
+              <ExternalLink size={16} />
+            </a>
+          )}
         </div>
       </div>
 
@@ -192,6 +224,24 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
           </div>
         )}
       </div>
+
+      {/* 图片预览遮罩 */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+          onClick={() => setPreviewImage(null)}
+        >
+          <img
+            src={previewImage}
+            alt="预览"
+            className="max-h-[90vh] max-w-[90vw] rounded shadow-xl cursor-zoom-out"
+            onClick={() => setPreviewImage(null)}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src = '/placeholder-image.png';
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
