@@ -138,8 +138,8 @@ def parse_arguments():
     # SQLite参数
     parser.add_argument(
         '--sqlite-path',
-        default='spider/db/news.db',
-        help='SQLite数据库文件路径 (默认: spider/db/news.db)'
+        default='news_spider/db/news.db',
+        help='SQLite数据库文件路径 (默认: news_spider/db/news.db)'
     )
     
     # PostgreSQL参数

@@ -60,7 +60,7 @@ export default function RSSPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-gray-50 pt-24 py-8">
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -73,7 +73,7 @@ export default function RSSPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-gray-50 pt-24 py-8">
         <div className="max-w-4xl mx-auto px-4">
           <Card className="border-red-200 bg-red-50">
             <CardContent className="pt-6">
@@ -95,7 +95,7 @@ export default function RSSPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 pt-24 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">

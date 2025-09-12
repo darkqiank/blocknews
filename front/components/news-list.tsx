@@ -43,46 +43,80 @@ function saveSourcesCache(sources: SourceItem[]) {
   } catch {}
 }
 
-// 页面标题组件
-const PageHeader = ({ 
-  newsCount, 
-  currentSource, 
-  onClearSource 
-}: { 
-  newsCount?: number; 
-  currentSource?: string | null; 
-  onClearSource?: () => void;
+// 侧边栏新闻源筛选组件
+const SourceSidebar = ({ 
+  sources, 
+  selectedSource, 
+  onSourceChange, 
+  loadingSources,
+  newsCount 
+}: {
+  sources: SourceItem[];
+  selectedSource: string | null;
+  onSourceChange: (source: string | null) => void;
+  loadingSources: boolean;
+  newsCount: number;
 }) => (
-  <div className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-4xl">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold tracking-tight flex flex-row items-center gap-2">
-            <img src="/logon.svg" alt="BlockNews" className="w-10 h-10" />
-            BlockNews
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            实时新闻聚合{typeof newsCount === 'number' ? ` · ${newsCount} 条新闻` : ''}
-            {currentSource ? ` · 来源: ${currentSource}` : ''}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {currentSource && (
-            <button
-              onClick={onClearSource}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary bg-muted hover:bg-muted/80 rounded-md transition-colors"
-            >
-              清除来源
-            </button>
+  <div className="w-64 flex-shrink-0">
+    <div className="sticky top-20 bg-white rounded-lg shadow-sm p-4">
+      {/* 标题区域 */}
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-gray-900 mb-1">实时新闻</h1>
+        <p className="text-sm text-gray-600">
+          {newsCount} 条新闻
+          {selectedSource && ` · ${sources.find(s => s.source === selectedSource)?.label || selectedSource}`}
+        </p>
+      </div>
+      
+      {/* 新闻源筛选 */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium text-gray-900 mb-3">新闻来源</h3>
+        
+        {/* 全部来源按钮 */}
+        <button
+          onClick={() => onSourceChange(null)}
+          className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+            selectedSource === null 
+              ? 'bg-blue-600 text-white' 
+              : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          全部来源
+        </button>
+        
+        {/* 来源列表 */}
+        <div className="space-y-1">
+          {loadingSources ? (
+            <div className="text-sm text-gray-500 px-3 py-2">加载来源...</div>
+          ) : sources.length === 0 ? (
+            <div className="text-sm text-gray-500 px-3 py-2">暂无来源</div>
+          ) : (
+            sources.map((source) => (
+              <button
+                key={source.source}
+                onClick={() => onSourceChange(source.source)}
+                className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  selectedSource === source.source 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                }`}
+                title={`查看 ${source.label} 的新闻`}
+              >
+                {source.label}
+              </button>
+            ))
           )}
-          <button
-            onClick={() => window.location.href = '/rss'}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary bg-muted hover:bg-muted/80 rounded-md transition-colors"
-          >
-            <Rss className="w-4 h-4" />
-            RSS订阅
-          </button>
         </div>
+        
+        {/* 清除筛选按钮 */}
+        {selectedSource && (
+          <button
+            onClick={() => onSourceChange(null)}
+            className="w-full mt-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+          >
+            清除筛选
+          </button>
+        )}
       </div>
     </div>
   </div>
@@ -217,62 +251,35 @@ export default function NewsList() {
     }
   };
 
-  const SourceSelector = useMemo(() => (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-4 max-w-4xl">
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          onClick={() => setSelectedSource(null)}
-          className={`px-3 py-1.5 rounded-md text-sm border ${
-            selectedSource === null 
-              ? 'bg-primary text-primary-foreground' 
-              : 'bg-transparent hover:bg-muted'
-          }`}
-        >
-          全部来源
-        </button>
-        {loadingSources ? (
-          <span className="text-sm text-muted-foreground">加载来源...</span>
-        ) : sources.length === 0 ? (
-          <span className="text-sm text-muted-foreground">暂无来源</span>
-        ) : (
-          sources.map((s) => (
-            <button
-              key={s.source}
-              onClick={() => setSelectedSource(s.source)}
-              className={`px-3 py-1.5 rounded-md text-sm border ${
-                selectedSource === s.source 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-transparent hover:bg-muted'
-              }`}
-              title={`查看 ${s.label} 的新闻`}
-            >
-              {s.label}
-            </button>
-          ))
-        )}
-      </div>
-    </div>
-  ), [sources, selectedSource, loadingSources]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <PageHeader />
-        <Separator />
-        {SourceSelector}
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <div className="space-y-6">
-            {[...Array(5)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader className="space-y-2">
-                  <div className="h-6 bg-muted rounded w-3/4"></div>
-                  <div className="h-4 bg-muted rounded w-1/2"></div>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-4 bg-muted rounded w-full"></div>
-                </CardContent>
-              </Card>
-            ))}
+      <div className="min-h-screen bg-background pt-16">
+        <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-8">
+          {/* 侧边栏 */}
+          <SourceSidebar
+            sources={sources}
+            selectedSource={selectedSource}
+            onSourceChange={setSelectedSource}
+            loadingSources={loadingSources}
+            newsCount={0}
+          />
+          
+          {/* 主内容区域 */}
+          <div className="flex-1">
+            <div className="space-y-6">
+              {[...Array(5)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardHeader className="space-y-2">
+                    <div className="h-6 bg-muted rounded w-3/4"></div>
+                    <div className="h-4 bg-muted rounded w-1/2"></div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-4 bg-muted rounded w-full"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -281,40 +288,53 @@ export default function NewsList() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background">
-        <PageHeader />
-        <Separator />
-        {SourceSelector}
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <Card className="border-destructive">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-destructive font-medium">加载新闻时出错</p>
-                <p className="text-sm text-muted-foreground mt-2">{error}</p>
-                <button 
-                  onClick={() => fetchNews(selectedSource)}
-                  className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                >
-                  重试
-                </button>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="min-h-screen bg-background pt-16">
+        <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-8">
+          {/* 侧边栏 */}
+          <SourceSidebar
+            sources={sources}
+            selectedSource={selectedSource}
+            onSourceChange={setSelectedSource}
+            loadingSources={loadingSources}
+            newsCount={0}
+          />
+          
+          {/* 主内容区域 */}
+          <div className="flex-1">
+            <Card className="border-destructive">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-destructive font-medium">加载新闻时出错</p>
+                  <p className="text-sm text-muted-foreground mt-2">{error}</p>
+                  <button 
+                    onClick={() => fetchNews(selectedSource)}
+                    className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                  >
+                    重试
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader 
-        newsCount={news.length} 
-        currentSource={selectedSource} 
-        onClearSource={() => setSelectedSource(null)} 
-      />
-      <Separator />
-      {SourceSelector}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
+    <div className="min-h-screen bg-background pt-16">
+      <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-8">
+        {/* 侧边栏 */}
+        <SourceSidebar
+          sources={sources}
+          selectedSource={selectedSource}
+          onSourceChange={setSelectedSource}
+          loadingSources={loadingSources}
+          newsCount={news.length}
+        />
+        
+        {/* 主内容区域 */}
+        <main className="flex-1">
         {news.length === 0 ? (
           <Card>
             <CardContent className="pt-6">
@@ -388,11 +408,12 @@ export default function NewsList() {
             </div>
           </div>
         )}
-      </main>
+        </main>
+      </div>
 
       {/* Footer */}
       <footer className="border-t mt-16">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-4xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-center text-sm text-muted-foreground">
             新闻内容来源于自有爬虫系统
           </p>

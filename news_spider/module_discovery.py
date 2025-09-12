@@ -9,7 +9,7 @@ import json
 class ModuleDiscovery:
     """动态发现和加载news模块"""
     
-    def __init__(self, news_dir: str = "spider/news"):
+    def __init__(self, news_dir: str = "news_spider/news"):
         self.news_dir = Path(news_dir)
         self.modules = {}
         
@@ -167,7 +167,7 @@ class ModuleDiscovery:
         }
 
 
-def discover_and_validate_modules(news_dir: str = "spider/news") -> ModuleDiscovery:
+def discover_and_validate_modules(news_dir: str = "news_spider/news") -> ModuleDiscovery:
     """发现并验证所有模块的便捷函数"""
     discovery = ModuleDiscovery(news_dir)
     modules = discovery.discover_modules()

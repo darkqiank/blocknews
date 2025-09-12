@@ -29,6 +29,7 @@ def parse_user_timeline(data):
                     if content.get("entryType") == "TimelineTimelineItem":
                         itemContent = content.get("itemContent")
                         x_item = parse_timeline_tweet_item(entryId, itemContent)
+                        x_item['created_at'] = x_item.get("data", {}).get("created_at")
                         # print(x_item)
                         x_items.append(x_item)
                     elif content.get("entryType") == "TimelineTimelineModule":
@@ -40,6 +41,8 @@ def parse_user_timeline(data):
                             parsed_data = parse_timeline_tweet_item(_entryId, _itemContent)
                             x_id_list.append(parsed_data['x_id'])
                             x_item['data'].append(parsed_data)
+                            if not x_item.get("created_at"):
+                                x_item['created_at'] = parsed_data.get("data", {}).get("created_at")
                         x_item['x_id'] = 'profile-conversation-' + '-'.join(x_id_list)
                         # print(x_item)
                         x_items.append(x_item)

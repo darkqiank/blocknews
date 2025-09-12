@@ -1,4 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
+// import { createClient } from '@supabase/supabase-js';
+import { PostgrestClient } from '@supabase/postgrest-js'
 
 // Supabase configuration
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '';
@@ -8,7 +9,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase environment variables not found. RSS feeds will not work properly.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// 添加认证头
+export const supabase = new PostgrestClient(supabaseUrl, {
+  headers: {
+    apikey: supabaseAnonKey,
+    Authorization: `Bearer ${supabaseAnonKey}`
+  }
+})
 
 // Database interfaces matching our spider schema
 export interface Article {
@@ -149,4 +158,145 @@ export async function getSourceStats(): Promise<{ source: string; count: number 
     source,
     count
   }));
+}
+
+// X (Twitter) related interfaces
+export interface XUser {
+  user_id: string;
+  user_name: string;
+  screen_name: string;
+  user_link: string;
+  avatar?: string;
+  expire: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface XData {
+  id: number; // Auto-increment primary key
+  x_id: string;
+  item_type: string;
+  data: any; // JSONB data
+  username?: string;
+  user_id?: string;
+  user_link?: string;
+  created_at: string;
+}
+
+// X user helper functions
+export async function getAllXUsers(includeExpired: boolean = false): Promise<XUser[]> {
+  let query = supabase
+    .from('t_x_users')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (!includeExpired) {
+    query = query.eq('expire', false);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching X users:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+export async function getXUserById(userId: string): Promise<XUser | null> {
+  const { data, error } = await supabase
+    .from('t_x_users')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error) {
+    console.error(`Error fetching X user ${userId}:`, error);
+    return null;
+  }
+
+  return data;
+}
+
+// X data helper functions
+export async function getLatestXData(limit: number = 30): Promise<XData[]> {
+  const { data, error } = await supabase
+    .from('t_x')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching latest X data:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+export async function getXDataByUserId(userId: string, limit: number = 30): Promise<XData[]> {
+  const { data, error } = await supabase
+    .from('t_x')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error(`Error fetching X data for user ${userId}:`, error);
+    return [];
+  }
+
+  return data || [];
+}
+
+export interface PagedXDataParams {
+  userId?: string;
+  itemType?: string;
+  limit?: number;
+  beforeCreatedAt?: string; // ISO timestamp cursor for created_at based pagination
+}
+
+export interface PagedXDataResult {
+  items: XData[];
+  nextCursor: string | null; // Now returns created_at timestamp as cursor
+  hasMore: boolean;
+}
+
+export async function getPagedXData(params: PagedXDataParams = {}): Promise<PagedXDataResult> {
+  const { userId, itemType, limit = 20, beforeCreatedAt } = params;
+  const pageSize = Math.max(1, Math.min(50, limit));
+
+  let query = supabase
+    .from('t_x')
+    .select('*')
+    .order('created_at', { ascending: false }) // Sort by created_at (newest first)
+    .limit(pageSize + 1);
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+  if (itemType) {
+    query = query.eq('item_type', itemType);
+  }
+  if (beforeCreatedAt) {
+    // Use created_at timestamp for cursor-based pagination
+    query = query.lt('created_at', beforeCreatedAt);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching paged X data:', error);
+    return { items: [], nextCursor: null, hasMore: false };
+  }
+
+  const rows = data || [];
+  const hasMore = rows.length > pageSize;
+  const items = hasMore ? rows.slice(0, pageSize) : rows;
+  const last = items[items.length - 1] || null;
+  const nextCursor = last ? last.created_at : null;
+
+  return { items, nextCursor, hasMore };
 }

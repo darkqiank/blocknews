@@ -37,7 +37,11 @@ def parse_user_info(data):
 
 
 if __name__ == "__main__":
-    data = x_user_info("Jackyi_ld")
+    user_screen_name = input("请输入要抓取用户名（url后面那串字符）: ")
+    if user_screen_name == "":
+        print("用户名不能为空")
+        exit()
+    data = x_user_info(user_screen_name)
     print(data)
     user_info = parse_user_info(data)
     upsert_x_user([user_info])

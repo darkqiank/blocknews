@@ -25,7 +25,7 @@ services:
       PGRST_DB_ANON_ROLE: anon
       PGRST_JWT_SECRET: ${JWT_SECRET}
     ports:
-      - "4444:4444"
+      - "4444:3000"
 
 volumes:
   db_data:

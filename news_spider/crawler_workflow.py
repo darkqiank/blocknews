@@ -12,14 +12,14 @@ from .module_discovery import ModuleDiscovery
 
 # 确保日志目录存在
 import os
-os.makedirs('spider/logs', exist_ok=True)
+os.makedirs('news_spider/logs', exist_ok=True)
 
 # 配置日志
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('spider/logs/crawler.log', encoding='utf-8'),
+        logging.FileHandler('news_spider/logs/crawler.log', encoding='utf-8'),
         logging.StreamHandler()
     ]
 )
@@ -273,7 +273,7 @@ class CrawlerWorkflow:
                         
                         # 更新链接状态为已完成
                         self.db_manager.update_link_status(url, 'completed')
-                        logger.debug(f"成功爬取文章: {url}")
+                        logger.info(f"成功爬取文章: {url}")
                     else:
                         # 更新链接状态为失败
                         self.db_manager.update_link_status(url, 'failed')

@@ -3,7 +3,7 @@ import psycopg2.extras
 from datetime import datetime
 import json
 import os
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 # Database configuration - should be moved to environment variables in production
 DB_CONFIG = {
@@ -13,6 +13,24 @@ DB_CONFIG = {
     'host': os.getenv('DB_HOST', 'localhost'),
     'port': os.getenv('DB_PORT', '5432')
 }
+
+def parse_twitter_date(date_str: Optional[str]) -> Optional[datetime]:
+    """
+    Parse Twitter date format 'Tue Sep 20 04:05:29 +0000 2011' to datetime object
+    Args:
+        date_str: Twitter date string or None
+    Returns:
+        datetime object or None if parsing fails or input is None
+    """
+    if not date_str:
+        return None
+    
+    try:
+        # Twitter date format: 'Tue Sep 20 04:05:29 +0000 2011'
+        return datetime.strptime(date_str, '%a %b %d %H:%M:%S %z %Y')
+    except (ValueError, TypeError) as e:
+        print(f"Error parsing Twitter date '{date_str}': {e}")
+        return None
 
 def get_db_connection():
     """Create and return a database connection"""
@@ -58,7 +76,8 @@ def create_x_table():
     """Create the X data table if it doesn't exist"""
     create_table_sql = """
     CREATE TABLE IF NOT EXISTS t_x (
-        x_id TEXT PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
+        x_id TEXT UNIQUE NOT NULL,
         item_type TEXT NOT NULL,
         data JSONB NOT NULL,
         username TEXT,
@@ -66,6 +85,13 @@ def create_x_table():
         user_link TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
+    
+    -- Create index on x_id for faster lookups
+    CREATE INDEX IF NOT EXISTS idx_t_x_x_id ON t_x(x_id);
+    -- Create index on created_at for ordering
+    CREATE INDEX IF NOT EXISTS idx_t_x_created_at ON t_x(created_at DESC);
+    -- Create index on user_id for user-specific queries
+    CREATE INDEX IF NOT EXISTS idx_t_x_user_id ON t_x(user_id);
     """
     
     conn = None
@@ -91,7 +117,7 @@ def insert_x_data(data: Dict[str, Any]) -> None:
         data: Dictionary containing X data items
     """
     insert_sql = """
-    INSERT INTO t_x (x_id, item_type, data, username, user_id, user_link)
+    INSERT INTO t_x (x_id, item_type, data, username, user_id, user_link, created_at)
     VALUES %s
     ON CONFLICT (x_id) DO NOTHING
     """
@@ -100,17 +126,24 @@ def insert_x_data(data: Dict[str, Any]) -> None:
     try:
         conn = get_db_connection()
         # 准备批量插入的数据
-        values = [
-            (
+        values = []
+        for x_id, item in data.items():
+            # 尝试从推文数据中获取created_at时间
+            tweet_created_at = None
+            item_data = item.get('data', {})
+            if isinstance(item_data, dict) and 'created_at' in item_data:
+                tweet_created_at = parse_twitter_date(item_data['created_at'])
+            
+            values.append((
                 x_id,
                 item.get('itemType'),
                 json.dumps(item.get('data')),
                 item.get('username'),
                 item.get('user_id'),
-                item.get('user_link')
-            )
-            for x_id, item in data.items()
-        ]
+                item.get('user_link'),
+                tweet_created_at  # 使用解析后的推文时间，如果为None则数据库会使用默认值
+            ))
+        
         
         with conn.cursor() as cur:
             # 使用execute_values进行批量插入
