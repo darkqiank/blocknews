@@ -32,6 +32,9 @@ jobs:
     - name: run crawler
       run: |
         cd x_spider
+        cat <<'EOF' > headers.json
+        ${{ secrets.X_HEADERS }}
+        EOF
         python x.py
       env:
           DB_HOST: ${{ secrets.DB_HOST }}
