@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16
+    container_name: pg16
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWD}
+      POSTGRES_DB: ${DB_DATABASE}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d # 初始化 SQL 脚本
+
+  postgrest:
+    image: postgrest/postgrest:v12.2.0
+    container_name: postgrest
+    restart: always
+    depends_on:
+      - db
+    environment:
+      PGRST_DB_URI: postgres://${DB_USER}:${DB_PASSWD}@db:5432/${DB_DATABASE}
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "4444:4444"
+
+volumes:
+  db_data:
+      driver: local
+      driver_opts:
+        type: none
+        o: bind
+        device: ${DB_DATA_PATH}
