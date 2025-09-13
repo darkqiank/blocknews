@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { ExternalLink } from 'lucide-react';
 import { XData } from '@/db_lib/supabase';
+import { getProxiedImageUrl } from '@/db_lib/image-utils';
 
 interface XUser {
   user_id: string;
@@ -60,7 +61,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
   // 获取头像 URL，优先使用用户数据中的 avatar 字段
   const getAvatarUrl = () => {
     if (currentUser?.avatar) {
-      return currentUser.avatar;
+      return getProxiedImageUrl(currentUser.avatar);
     }
     // 回退到默认头像 URL
     return `${process.env.NEXT_PUBLIC_BASE_IMAGES_URL || '/avatars/'}${item.user_id}.png`;
@@ -119,7 +120,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
                 mediaLinks.map((media: string, index: number) => (
                   <div key={index} className="relative">
                     <Image
-                      src={media}
+                      src={getProxiedImageUrl(media)}
                       alt="媒体内容"
                       width={200}
                       height={96}
@@ -261,7 +262,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
           onClick={() => setPreviewImage(null)}
         >
           <Image
-            src={previewImage}
+            src={getProxiedImageUrl(previewImage)}
             alt="预览"
             width={800}
             height={600}

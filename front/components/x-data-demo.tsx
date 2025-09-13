@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { TweetCard } from '@/components/ui/tweet-card';
+import { getProxiedImageUrl } from '@/db_lib/image-utils';
 
 interface XUser {
   user_id: string;
@@ -141,9 +142,62 @@ export function XDataDemo() {
       </div> */}
 
       {/* 左右分栏布局 */}
-      <div className="flex gap-8">
-        {/* 左侧用户列表 */}
-        <div className="w-80 flex-shrink-0">
+      <div className="flex gap-3 md:gap-8">
+        {/* 移动端窄侧栏头像轨道 */}
+        <div className="md:hidden w-16 flex-shrink-0">
+          <div className="sticky top-20">
+            <Card className="bg-white shadow-sm">
+              <div className="p-2 flex flex-col items-center max-h-[calc(100vh-12rem)] overflow-y-auto gap-2">
+                {/* 全部用户按钮（仅图标） */}
+                <button
+                  onClick={() => setSelectedUserId('')}
+                  className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all border shadow-sm ${
+                    selectedUserId === '' ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-white border-blue-200 bg-gradient-to-br from-blue-500 to-purple-600' : 'bg-gradient-to-br from-blue-500 to-purple-600 hover:opacity-90 border-transparent'
+                  }`}
+                  title="全部用户"
+                  aria-label="全部用户"
+                >
+                  全
+                </button>
+
+                {/* 用户头像列表（仅头像+角标） */}
+                {users
+                  .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+                  .map((user) => (
+                    <div key={user.user_id} className="relative">
+                      <button
+                        onClick={() => setSelectedUserId(user.user_id)}
+                        className={`relative w-12 h-12 rounded-full overflow-hidden border bg-white transition-all shadow-sm ${
+                          selectedUserId === user.user_id ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-white border-blue-200 scale-[1.02]' : 'border-transparent hover:ring-1 hover:ring-gray-300'
+                        }`}
+                        title={user.user_name}
+                        aria-label={user.user_name}
+                      >
+                        <Image
+                          src={getProxiedImageUrl(user.avatar || `${process.env.NEXT_PUBLIC_BASE_IMAGES_URL || '/avatars/'}${user.user_id}.png`)}
+                          alt={user.user_name}
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded-full bg-gray-200 object-cover"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = `data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"48\" height=\"48\" viewBox=\"0 0 40 40\"><rect width=\"40\" height=\"40\" fill=\"%23e5e7eb\"/><text x=\"20\" y=\"25\" text-anchor=\"middle\" fill=\"%236b7280\" font-size=\"12\">${user.user_name.charAt(0).toUpperCase()}</text></svg>`;
+                          }}
+                          unoptimized
+                        />
+                      </button>
+                      {/* 最新推文数角标 - 在容器外部避免被圆形蒙版切掉 */}
+                      <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1.5 rounded-full bg-gray-900/80 text-white text-[10px] leading-4 text-center backdrop-blur-sm shadow z-10 pointer-events-none">
+                        {userStats[user.user_id] || 0}
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </Card>
+          </div>
+        </div>
+
+        {/* 左侧用户列表（桌面端） */}
+        <div className="hidden md:block w-80 flex-shrink-0">
           <div className="sticky top-20">
             <Card className="bg-white shadow-sm">
               <div className="p-4 flex flex-col max-h-[calc(100vh-12rem)]">
@@ -188,7 +242,7 @@ export function XDataDemo() {
                   >
                     <div className="relative mr-3">
                       <Image
-                        src={user.avatar || `${process.env.NEXT_PUBLIC_BASE_IMAGES_URL || '/avatars/'}${user.user_id}.png`}
+                        src={getProxiedImageUrl(user.avatar || `${process.env.NEXT_PUBLIC_BASE_IMAGES_URL || '/avatars/'}${user.user_id}.png`)}
                         alt={user.user_name}
                         width={40}
                         height={40}
@@ -198,9 +252,6 @@ export function XDataDemo() {
                         }}
                         unoptimized
                       />
-                      <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
-                        user.expire ? 'bg-red-400' : 'bg-green-400'
-                      }`}></div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-gray-900 truncate">{user.user_name}</div>

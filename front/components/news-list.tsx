@@ -255,18 +255,42 @@ export default function NewsList() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background pt-16">
-        <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-8">
-          {/* 侧边栏 */}
-          <SourceSidebar
-            sources={sources}
-            selectedSource={selectedSource}
-            onSourceChange={setSelectedSource}
-            loadingSources={loadingSources}
-            newsCount={0}
-          />
+        <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-4 md:gap-8">
+          {/* 侧边栏（桌面端） */}
+          <div className="hidden md:block">
+            <SourceSidebar
+              sources={sources}
+              selectedSource={selectedSource}
+              onSourceChange={setSelectedSource}
+              loadingSources={loadingSources}
+              newsCount={0}
+            />
+          </div>
           
           {/* 主内容区域 */}
           <div className="flex-1">
+            {/* 移动端顶部筛选栏 */}
+            <div className="md:hidden w-full mb-4">
+              <Card className="bg-white shadow-sm">
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-600 whitespace-nowrap">来源</span>
+                    <select
+                      value={selectedSource ?? ''}
+                      onChange={(e) => setSelectedSource(e.target.value || null)}
+                      className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                      disabled={loadingSources}
+                    >
+                      <option value="">全部来源</option>
+                      {sources.map((s) => (
+                        <option key={s.source} value={s.source}>{s.label}</option>
+                      ))}
+                    </select>
+                    <span className="ml-auto text-xs text-gray-500">0 条</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
             <div className="space-y-6">
               {[...Array(5)].map((_, i) => (
                 <Card key={i} className="animate-pulse">
@@ -289,18 +313,41 @@ export default function NewsList() {
   if (error) {
     return (
       <div className="min-h-screen bg-background pt-16">
-        <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-8">
-          {/* 侧边栏 */}
-          <SourceSidebar
-            sources={sources}
-            selectedSource={selectedSource}
-            onSourceChange={setSelectedSource}
-            loadingSources={loadingSources}
-            newsCount={0}
-          />
+        <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-4 md:gap-8">
+          {/* 侧边栏（桌面端） */}
+          <div className="hidden md:block">
+            <SourceSidebar
+              sources={sources}
+              selectedSource={selectedSource}
+              onSourceChange={setSelectedSource}
+              loadingSources={loadingSources}
+              newsCount={0}
+            />
+          </div>
           
           {/* 主内容区域 */}
           <div className="flex-1">
+            {/* 移动端顶部筛选栏 */}
+            <div className="md:hidden w-full mb-4">
+              <Card className="bg-white shadow-sm">
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-600 whitespace-nowrap">来源</span>
+                    <select
+                      value={selectedSource ?? ''}
+                      onChange={(e) => setSelectedSource(e.target.value || null)}
+                      className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    >
+                      <option value="">全部来源</option>
+                      {sources.map((s) => (
+                        <option key={s.source} value={s.source}>{s.label}</option>
+                      ))}
+                    </select>
+                    <span className="ml-auto text-xs text-gray-500">0 条</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
             <Card className="border-destructive">
               <CardContent className="pt-6">
                 <div className="text-center">
@@ -323,18 +370,41 @@ export default function NewsList() {
 
   return (
     <div className="min-h-screen bg-background pt-16">
-      <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-8">
-        {/* 侧边栏 */}
-        <SourceSidebar
-          sources={sources}
-          selectedSource={selectedSource}
-          onSourceChange={setSelectedSource}
-          loadingSources={loadingSources}
-          newsCount={news.length}
-        />
+      <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-4 md:gap-8">
+        {/* 侧边栏（桌面端） */}
+        <div className="hidden md:block">
+          <SourceSidebar
+            sources={sources}
+            selectedSource={selectedSource}
+            onSourceChange={setSelectedSource}
+            loadingSources={loadingSources}
+            newsCount={news.length}
+          />
+        </div>
         
         {/* 主内容区域 */}
         <main className="flex-1">
+        {/* 移动端顶部筛选栏 */}
+        <div className="md:hidden w-full mb-4">
+          <Card className="bg-white shadow-sm">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-600 whitespace-nowrap">来源</span>
+                <select
+                  value={selectedSource ?? ''}
+                  onChange={(e) => setSelectedSource(e.target.value || null)}
+                  className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+                >
+                  <option value="">全部来源</option>
+                  {sources.map((s) => (
+                    <option key={s.source} value={s.source}>{s.label}</option>
+                  ))}
+                </select>
+                <span className="ml-auto text-xs text-gray-500">{news.length} 条</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
         {news.length === 0 ? (
           <Card>
             <CardContent className="pt-6">

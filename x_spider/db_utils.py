@@ -23,14 +23,17 @@ def parse_twitter_date(date_str: Optional[str]) -> Optional[datetime]:
         datetime object or None if parsing fails or input is None
     """
     if not date_str:
-        return None
+        # 返回当前数据
+        return datetime.now()
     
     try:
         # Twitter date format: 'Tue Sep 20 04:05:29 +0000 2011'
-        return datetime.strptime(date_str, '%a %b %d %H:%M:%S %z %Y')
+        ds = datetime.strptime(date_str, '%a %b %d %H:%M:%S %z %Y')
+        return ds
     except (ValueError, TypeError) as e:
         print(f"Error parsing Twitter date '{date_str}': {e}")
-        return None
+        return datetime.now()
+    
 
 def get_db_connection():
     """Create and return a database connection"""
@@ -129,10 +132,9 @@ def insert_x_data(data: Dict[str, Any]) -> None:
         values = []
         for x_id, item in data.items():
             # 尝试从推文数据中获取created_at时间
-            tweet_created_at = None
-            item_data = item.get('data', {})
-            if isinstance(item_data, dict) and 'created_at' in item_data:
-                tweet_created_at = parse_twitter_date(item_data['created_at'])
+            tweet_created_at = datetime.now()
+            if 'created_at' in item:
+                tweet_created_at = parse_twitter_date(item['created_at'])
             
             values.append((
                 x_id,
@@ -141,7 +143,7 @@ def insert_x_data(data: Dict[str, Any]) -> None:
                 item.get('username'),
                 item.get('user_id'),
                 item.get('user_link'),
-                tweet_created_at  # 使用解析后的推文时间，如果为None则数据库会使用默认值
+                tweet_created_at
             ))
         
         

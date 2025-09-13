@@ -1,6 +1,7 @@
 import json
+from logging import NullHandler
 import re
-
+import traceback
 
 def extract_tweet_id(text):
     match = re.search(r'(tweet-(\d+))', text)
@@ -11,7 +12,12 @@ def extract_tweet_id(text):
 def parse_user_timeline(data):
     x_items = []
     try:
-        timelines = data.get("data").get("user").get("result").get("timeline_v2").get("timeline")
+        timelines_result = data.get("data").get("user").get("result")
+        if timelines_result.get("timeline_v2"):
+            timelines = timelines_result.get("timeline_v2").get("timeline")
+        else:
+            timelines = timelines_result.get("timeline").get("timeline")
+        # timelines = data.get("data").get("user").get("result").get("timeline_v2").get("timeline")
         instructions = timelines.get("instructions")
     except Exception as e:
         print("获取timeline错误", e)
@@ -23,6 +29,7 @@ def parse_user_timeline(data):
                 entries = instruction.get("entries")
                 for entry in entries:
                     entryId = entry.get("entryId")
+                    print(entryId)
                     if str(entryId).startswith("who-to-follow"):
                         continue
                     content = entry.get("content")
@@ -48,7 +55,51 @@ def parse_user_timeline(data):
                         x_items.append(x_item)
         except Exception as e:
             print("解析单条twitter 错误 ", e)
+            traceback.print_exc()
     return x_items
+
+
+def parse_text_from_tweet(tweet_results):
+    legacy_full_text = None
+    note_tweet_full_text = None
+    quoted_full_text = None
+    retweeted_full_text = None
+
+    legacy = tweet_results.get('legacy')
+    if not legacy:
+        legacy = tweet_results.get('tweet').get('legacy')
+    
+    legacy_full_text = legacy.get('full_text')
+
+    if tweet_results.get('note_tweet'):
+        note_tweet_full_text = tweet_results.get('note_tweet_results', {}).get('result', {}).get('text')
+
+    if tweet_results.get('quoted_status_result'):
+        quoted_status_result = tweet_results.get('quoted_status_result', {}).get('result')
+        # print(quoted_status_result)
+
+        if quoted_status_result:
+            quoted_full_text = parse_text_from_tweet(quoted_status_result)
+            if quoted_full_text: 
+                quoted_user_name = quoted_status_result.get('core', {}).get('user_results', {}).get('result', {}).get('core', {}).get('screen_name', '')
+                quoted_full_text = 'quoted From @' + quoted_user_name + ': ' + quoted_full_text
+
+    if legacy.get('retweeted_status_result'):
+        retweeted_status_result = legacy.get('retweeted_status_result').get('result')
+        if retweeted_status_result:
+            retweeted_full_text = parse_text_from_tweet(retweeted_status_result)
+            if retweeted_full_text:
+                retweeted_user_name = retweeted_status_result.get('core', {}).get('user_results', {}).get('result', {}).get('core', {}).get('screen_name', '')
+                retweeted_full_text = 'RT @' + retweeted_user_name + ': ' + retweeted_full_text
+
+    full_text = legacy_full_text
+    if note_tweet_full_text:
+        full_text = note_tweet_full_text
+    if retweeted_full_text:
+        full_text = retweeted_full_text
+    if quoted_full_text:
+        full_text = f'{full_text}\n{quoted_full_text}'
+    return full_text
 
 
 def parse_timeline_tweet_item(entryId, itemContent):
@@ -65,7 +116,7 @@ def parse_timeline_tweet_item(entryId, itemContent):
         x_data['created_at'] = legacy.get('created_at')
         x_data['bookmark_count'] = legacy.get('bookmark_count')
         x_data['favorite_count'] = legacy.get('favorite_count')
-        full_text = legacy.get('full_text')
+        full_text = parse_text_from_tweet(tweet_results)
         x_data['full_text'] = full_text
 
         # 添加外链和多媒体内容解析
@@ -122,5 +173,11 @@ def parse_timeline_tweet_item(entryId, itemContent):
         return x_item
 
 
+if __name__ == "__main__":
+    with open('demo.json', 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    output = parse_user_timeline(data)
+    with open('output.json', 'w', encoding='utf-8') as f:
+        json.dump(output, f, ensure_ascii=False, indent=4)
 
 
