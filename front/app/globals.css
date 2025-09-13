@@ -134,4 +134,13 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  
+  /* 自定义滚动条隐藏样式 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

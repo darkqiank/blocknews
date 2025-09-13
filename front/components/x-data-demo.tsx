@@ -51,6 +51,12 @@ export function XDataDemo() {
     fetchLatestData(true);
     setNextCursor(null);
     setHasMore(false);
+    
+    // 滚动到顶部
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUserId]);
 
@@ -134,7 +140,7 @@ export function XDataDemo() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
       {/* 页面标题 */}
       {/* <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">X (Twitter) 数据管理</h1>
@@ -142,17 +148,17 @@ export function XDataDemo() {
       </div> */}
 
       {/* 左右分栏布局 */}
-      <div className="flex gap-3 md:gap-8">
+      <div className="flex gap-2 md:gap-6 lg:gap-8 min-h-0">
         {/* 移动端窄侧栏头像轨道 */}
-        <div className="md:hidden w-16 flex-shrink-0">
+        <div className="md:hidden w-14 sm:w-16 flex-shrink-0">
           <div className="sticky top-20">
-            <Card className="bg-white shadow-sm">
-              <div className="p-2 flex flex-col items-center max-h-[calc(100vh-12rem)] overflow-y-auto gap-2">
+            <Card className="bg-white shadow-sm py-2">
+              <div className="p-1.5 sm:p-2 flex flex-col items-center max-h-[calc(100vh-12rem)] overflow-y-auto gap-1.5 sm:gap-2 scrollbar-hide">
                 {/* 全部用户按钮（仅图标） */}
                 <button
                   onClick={() => setSelectedUserId('')}
-                  className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all border shadow-sm ${
-                    selectedUserId === '' ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-white border-blue-200 bg-gradient-to-br from-blue-500 to-purple-600' : 'bg-gradient-to-br from-blue-500 to-purple-600 hover:opacity-90 border-transparent'
+                  className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm transition-all border shadow-sm ${
+                    selectedUserId === '' ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-white border-blue-200 bg-gradient-to-br from-blue-500 to-purple-600' : 'bg-gradient-to-br from-blue-500 to-purple-600 hover:opacity-90 border-transparent'
                   }`}
                   title="全部用户"
                   aria-label="全部用户"
@@ -167,8 +173,8 @@ export function XDataDemo() {
                     <div key={user.user_id} className="relative">
                       <button
                         onClick={() => setSelectedUserId(user.user_id)}
-                        className={`relative w-12 h-12 rounded-full overflow-hidden border bg-white transition-all shadow-sm ${
-                          selectedUserId === user.user_id ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-white border-blue-200 scale-[1.02]' : 'border-transparent hover:ring-1 hover:ring-gray-300'
+                        className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border bg-white transition-all shadow-sm ${
+                          selectedUserId === user.user_id ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-white border-blue-200 scale-[1.02]' : 'border-transparent hover:ring-1 hover:ring-gray-300'
                         }`}
                         title={user.user_name}
                         aria-label={user.user_name}
@@ -178,7 +184,7 @@ export function XDataDemo() {
                           alt={user.user_name}
                           width={48}
                           height={48}
-                          className="w-12 h-12 rounded-full bg-gray-200 object-cover"
+                          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-200 object-cover"
                           onError={(e) => {
                             (e.currentTarget as HTMLImageElement).src = `data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"48\" height=\"48\" viewBox=\"0 0 40 40\"><rect width=\"40\" height=\"40\" fill=\"%23e5e7eb\"/><text x=\"20\" y=\"25\" text-anchor=\"middle\" fill=\"%236b7280\" font-size=\"12\">${user.user_name.charAt(0).toUpperCase()}</text></svg>`;
                           }}
@@ -186,7 +192,7 @@ export function XDataDemo() {
                         />
                       </button>
                       {/* 最新推文数角标 - 在容器外部避免被圆形蒙版切掉 */}
-                      <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1.5 rounded-full bg-gray-900/80 text-white text-[10px] leading-4 text-center backdrop-blur-sm shadow z-10 pointer-events-none">
+                      <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 px-1 sm:px-1.5 rounded-full bg-gray-900/80 text-white text-[9px] sm:text-[10px] leading-3.5 sm:leading-4 text-center backdrop-blur-sm shadow z-10 pointer-events-none">
                         {userStats[user.user_id] || 0}
                       </span>
                     </div>
@@ -197,9 +203,9 @@ export function XDataDemo() {
         </div>
 
         {/* 左侧用户列表（桌面端） */}
-        <div className="hidden md:block w-80 flex-shrink-0">
+        <div className="hidden md:block w-72 lg:w-80 flex-shrink-0">
           <div className="sticky top-20">
-            <Card className="bg-white shadow-sm">
+            <Card className="bg-white shadow-sm py-4">
               <div className="p-4 flex flex-col max-h-[calc(100vh-12rem)]">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-semibold text-gray-900">用户列表</h2>
@@ -227,7 +233,7 @@ export function XDataDemo() {
                 </div>
                 
                 {/* 用户列表 */}
-                <div className="flex-1 overflow-y-auto space-y-2">
+                <div className="flex-1 overflow-y-auto space-y-2 scrollbar-hide">
                 {users
                   .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
                   .map((user) => (
@@ -275,11 +281,11 @@ export function XDataDemo() {
         </div>
 
         {/* 右侧数据展示 */}
-        <div className="flex-1">
-          <Card className="bg-white shadow-sm">
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-gray-900">
+        <div className="flex-1 min-w-0">
+          <Card className="bg-white shadow-sm w-full py-3 sm:py-4">
+            <div className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-2 sm:gap-0">
+                <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                   {selectedUserId ? 
                     `${users.find(u => u.user_id === selectedUserId)?.user_name || '用户'} 的数据 (${latestData.length})` : 
                     `最新 X 数据 (${latestData.length})`
@@ -288,7 +294,7 @@ export function XDataDemo() {
                 <button
                   onClick={() => fetchLatestData(true)}
                   disabled={loading}
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 self-end sm:self-auto"
                   title="刷新数据"
                 >
                   <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -314,22 +320,24 @@ export function XDataDemo() {
                   </div>
                 ) : (
                   /* 推文列表和加载更多 */
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4 w-full">
                     {latestData.map((item) => (
-                      <TweetCard key={item.x_id} item={item} users={users} />
+                      <div key={item.x_id} className="w-full">
+                        <TweetCard item={item} users={users} />
+                      </div>
                     ))}
                     
                     {/* 加载中的推文占位符 */}
                     {loadingMore && (
-                      <div className="space-y-4">
+                      <div className="space-y-3 sm:space-y-4 w-full">
                         {[...Array(3)].map((_, i) => (
-                          <div key={`loading-${i}`} className="p-4 border border-gray-200 rounded-lg animate-pulse">
+                          <div key={`loading-${i}`} className="p-3 sm:p-4 border border-gray-200 rounded-lg animate-pulse w-full">
                             <div className="flex items-start space-x-3">
-                              <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
-                              <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200 rounded-full flex-shrink-0"></div>
+                              <div className="flex-1 space-y-2 min-w-0">
+                                <div className="h-3 sm:h-4 bg-gray-200 rounded w-1/4"></div>
+                                <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4"></div>
+                                <div className="h-3 sm:h-4 bg-gray-200 rounded w-1/2"></div>
                               </div>
                             </div>
                           </div>
@@ -338,12 +346,12 @@ export function XDataDemo() {
                     )}
                     
                     {/* 加载更多按钮 */}
-                    <div className="text-center pt-8">
+                    <div className="text-center pt-6 sm:pt-8">
                       {hasMore ? (
                         <button
                           onClick={loadMoreData}
                           disabled={loadingMore}
-                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mx-auto"
+                          className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mx-auto"
                         >
                           {loadingMore && (
                             <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">

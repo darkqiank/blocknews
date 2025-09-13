@@ -76,7 +76,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     return (
       <div className={`${isSubItem ? 'ml-4 pl-4 border-l-2 border-gray-200' : ''}`}>
         {fullText && (
-          <div className="text-gray-900 mb-3 whitespace-pre-wrap">
+          <div className="text-gray-900 mb-3 whitespace-pre-wrap break-words">
             {fullText}
           </div>
         )}
@@ -91,19 +91,33 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
               {Object.entries(urls).map(([, links]) =>
                 links
                   .filter((link: string) => link !== null)
-                  .map((link: string, index: number) => (
-                    <div key={index}>
-                      <a
-                        href={link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm hover:underline"
-                      >
-                        <ExternalLink size={14} className="mr-1" />
-                        {link.length > 50 ? `${link.substring(0, 50)}...` : link}
-                      </a>
-                    </div>
-                  ))
+                  .map((link: string, index: number) => {
+                    // 根据屏幕尺寸调整截断长度
+                    const getMaxLength = () => {
+                      if (typeof window !== 'undefined') {
+                        return window.innerWidth < 640 ? 25 : window.innerWidth < 768 ? 35 : 45;
+                      }
+                      return 35; // 默认值
+                    };
+                    
+                    const maxLength = getMaxLength();
+                    const displayText = link.length > maxLength ? `${link.substring(0, maxLength)}...` : link;
+                    
+                    return (
+                      <div key={index} className="w-full">
+                        <a
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-start text-blue-600 hover:text-blue-800 text-sm hover:underline break-all w-full"
+                          title={link} // 显示完整链接作为提示
+                        >
+                          <ExternalLink size={14} className="mr-1 mt-0.5 flex-shrink-0" />
+                          <span className="break-all">{displayText}</span>
+                        </a>
+                      </div>
+                    );
+                  })
               )}
             </div>
           </div>
@@ -168,10 +182,10 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
   };
 
   return (
-    <div className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+    <div className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full">
       {/* 头部信息 */}
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex items-center space-x-3">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 space-y-2 sm:space-y-0">
+        <div className="flex items-center space-x-3 min-w-0 flex-1">
           {/* 用户头像 */}
           {item.user_id && (
             <Image
@@ -179,7 +193,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
               alt={currentUser?.user_name || item.username || '用户'}
               width={40}
               height={40}
-              className="w-10 h-10 rounded-full bg-gray-200 border"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 border flex-shrink-0"
               onError={(e) => {
                 // 使用与用户列表相同的错误处理逻辑
                 const userName = currentUser?.user_name || item.username || '用户';
@@ -189,9 +203,9 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
             />
           )}
           
-          <div>
+          <div className="min-w-0 flex-1">
             {/* 用户名和链接 */}
-            <div className="font-medium text-gray-900">
+            <div className="font-medium text-gray-900 text-sm sm:text-base truncate">
               {item.user_link ? (
                 <a
                   href={item.user_link}
@@ -205,12 +219,15 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
                 `@${item.username || '未知用户'}`
               )}
             </div>
-
+            {/* 移动端时间显示在用户名下方 */}
+            <div className="sm:hidden text-xs text-gray-400 mt-1">
+              {getDisplayCreatedAt(item)}
+            </div>
           </div>
         </div>
         
-        {/* 时间与原文链接 */}
-        <div className="flex items-center gap-2 text-xs text-gray-400">
+        {/* 桌面端时间与原文链接 */}
+        <div className="hidden sm:flex items-center gap-2 text-xs text-gray-400 flex-shrink-0">
           <span>{getDisplayCreatedAt(item)}</span>
           {originalUrl && (
             <a
@@ -224,6 +241,21 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
             </a>
           )}
         </div>
+        
+        {/* 移动端原文链接单独一行 */}
+        {originalUrl && (
+          <div className="sm:hidden flex justify-end">
+            <a
+              href={originalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="查看原文"
+              className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+            >
+              <ExternalLink size={16} />
+            </a>
+          </div>
+        )}
       </div>
 
       {/* 内容区域 */}
@@ -245,7 +277,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         {!isTweet && !isProfileConversation && (
           <div className="bg-gray-50 rounded-lg p-3">
             <div className="text-xs font-medium text-gray-700 mb-2">数据内容预览：</div>
-            <div className="text-xs text-gray-600 font-mono bg-white p-2 rounded border max-h-20 overflow-y-auto">
+            <div className="text-xs text-gray-600 font-mono bg-white p-2 rounded border max-h-20 overflow-y-auto break-all">
               {typeof item.data === 'object' ? 
                 JSON.stringify(item.data, null, 2).substring(0, 200) + (JSON.stringify(item.data).length > 200 ? '...' : '') :
                 String(item.data).substring(0, 200) + (String(item.data).length > 200 ? '...' : '')
