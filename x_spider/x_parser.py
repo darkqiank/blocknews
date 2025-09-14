@@ -29,9 +29,11 @@ def parse_user_timeline(data):
                 entries = instruction.get("entries")
                 for entry in entries:
                     entryId = entry.get("entryId")
-                    print(entryId)
-                    if str(entryId).startswith("who-to-follow"):
+                    # if str(entryId).startswith("who-to-follow"):
+                    #     continue
+                    if not str(entryId).startswith("tweet-") and not str(entryId).startswith("profile-conversation"):
                         continue
+                    print(entryId)
                     content = entry.get("content")
                     if content.get("entryType") == "TimelineTimelineItem":
                         itemContent = content.get("itemContent")
