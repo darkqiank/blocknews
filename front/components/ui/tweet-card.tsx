@@ -184,7 +184,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
   return (
     <div className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full">
       {/* 头部信息 */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 space-y-2 sm:space-y-0">
+      <div className="flex justify-between items-start mb-3">
         <div className="flex items-center space-x-3 min-w-0 flex-1">
           {/* 用户头像 */}
           {item.user_id && (
@@ -219,32 +219,16 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
                 `@${item.username || '未知用户'}`
               )}
             </div>
-            {/* 移动端时间显示在用户名下方 */}
-            <div className="sm:hidden text-xs text-gray-400 mt-1">
+            {/* 时间显示在用户名下方 */}
+            <div className="text-xs text-gray-400 mt-1">
               {getDisplayCreatedAt(item)}
             </div>
           </div>
         </div>
         
-        {/* 桌面端时间与原文链接 */}
-        <div className="hidden sm:flex items-center gap-2 text-xs text-gray-400 flex-shrink-0">
-          <span>{getDisplayCreatedAt(item)}</span>
-          {originalUrl && (
-            <a
-              href={originalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="查看原文"
-              className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700"
-            >
-              <ExternalLink size={16} />
-            </a>
-          )}
-        </div>
-        
-        {/* 移动端原文链接单独一行 */}
+        {/* 原文链接图标 */}
         {originalUrl && (
-          <div className="sm:hidden flex justify-end">
+          <div className="flex items-center ml-2 flex-shrink-0">
             <a
               href={originalUrl}
               target="_blank"
