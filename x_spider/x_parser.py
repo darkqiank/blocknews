@@ -81,7 +81,9 @@ def parse_text_from_tweet(tweet_results):
         if quoted_status_result:
             quoted_full_text = parse_text_from_tweet(quoted_status_result)
             if quoted_full_text: 
-                quoted_user_name = quoted_status_result.get('core', {}).get('user_results', {}).get('result', {}).get('core', {}).get('screen_name', '')
+                quoted_user_name = quoted_status_result.get('core', {}).get('user_results', {}).get('result', {}).get('legacy', {}).get('screen_name', '')
+                if not quoted_user_name:
+                    quoted_user_name = quoted_status_result.get('core', {}).get('user_results', {}).get('result', {}).get('core', {}).get('screen_name', '')
                 quoted_full_text = 'quoted From @' + quoted_user_name + ': ' + quoted_full_text
 
     if legacy.get('retweeted_status_result'):
@@ -89,7 +91,9 @@ def parse_text_from_tweet(tweet_results):
         if retweeted_status_result:
             retweeted_full_text = parse_text_from_tweet(retweeted_status_result)
             if retweeted_full_text:
-                retweeted_user_name = retweeted_status_result.get('core', {}).get('user_results', {}).get('result', {}).get('core', {}).get('screen_name', '')
+                retweeted_user_name = retweeted_status_result.get('core', {}).get('user_results', {}).get('result', {}).get('legacy', {}).get('screen_name', '')
+                if not retweeted_user_name:
+                    retweeted_user_name = retweeted_status_result.get('core', {}).get('user_results', {}).get('result', {}).get('core', {}).get('screen_name', '')
                 retweeted_full_text = 'RT @' + retweeted_user_name + ': ' + retweeted_full_text
 
     full_text = legacy_full_text

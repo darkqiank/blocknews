@@ -56,6 +56,8 @@ for user in users:
 
     if not user.get('expire'):
         x_data_raw = xx(user_id)
+        # with open(f'{user_id}.json',  'w', encoding='utf-8') as f:
+        #     json.dump(x_data_raw, f, ensure_ascii=False, indent=4)
         x_items = parse_user_timeline(x_data_raw)
         print(f'user {username} 爬取到 {len(x_items)} 条twitter！')
         for x_item in x_items:
@@ -67,3 +69,6 @@ for user in users:
         time.sleep(2)
 
 upload_to_db(output_datas)
+
+# with open('output_2.json', 'w', encoding='utf-8') as f:
+#     json.dump(output_datas, f, ensure_ascii=False, indent=4)
