@@ -67,6 +67,67 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     return `${process.env.NEXT_PUBLIC_BASE_IMAGES_URL || '/avatars/'}${item.user_id}.png`;
   };
   
+  // 处理推文文本中的特殊标记（@用户名、#话题标签、$股票标签）
+  const processTextWithLinks = (text: string) => {
+    if (!text) return null;
+    
+    // 正则表达式匹配 @用户名、#话题标签、$股票标签
+    // @用户名和#话题标签：支持中英文、数字、下划线、连字符
+    // $股票标签：必须以英文字母开头，只包含英文字母+数字+下划线+连字符，最长15个字符
+    const regex = /(@[a-zA-Z0-9_\u4e00-\u9fa5-]+)|(\$[a-zA-Z][a-zA-Z0-9_-]{0,14})|(#[a-zA-Z0-9_\u4e00-\u9fa5-]+)/g;
+    
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = regex.exec(text)) !== null) {
+      // 添加匹配前的普通文本
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index));
+      }
+      
+      const matchedText = match[0];
+      let href = '';
+      
+      if (matchedText.startsWith('@')) {
+        // @用户名 -> https://x.com/username
+        const username = matchedText.slice(1);
+        href = `https://x.com/${username}`;
+      } else if (matchedText.startsWith('$')) {
+        // $股票标签 -> https://x.com/search?q=%24xxxx&src=cashtag_click
+        const symbol = matchedText.slice(1);
+        href = `https://x.com/search?q=%24${symbol}&src=cashtag_click`;
+      } else if (matchedText.startsWith('#')) {
+        // #话题标签 -> https://x.com/hashtag/xxxx
+        const hashtag = matchedText.slice(1);
+        href = `https://x.com/hashtag/${hashtag}`;
+      }
+      
+      // 添加链接元素
+      parts.push(
+        <a
+          key={`${match.index}-${matchedText}`}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+          onClick={(e) => e.stopPropagation()} // 防止事件冒泡
+        >
+          {matchedText}
+        </a>
+      );
+      
+      lastIndex = regex.lastIndex;
+    }
+    
+    // 添加剩余的普通文本
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+    
+    return parts.length > 0 ? parts : text;
+  };
+
   // 渲染推文内容
   const renderTweetContent = (data: Record<string, unknown>, isSubItem: boolean = false) => {
     const fullText = data.full_text as string;
@@ -77,7 +138,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
       <div className={`${isSubItem ? 'ml-4 pl-4 border-l-2 border-gray-200' : ''}`}>
         {fullText && (
           <div className="text-gray-900 mb-3 whitespace-pre-wrap break-words">
-            {fullText}
+            {processTextWithLinks(fullText)}
           </div>
         )}
         
