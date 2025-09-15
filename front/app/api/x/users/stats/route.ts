@@ -30,9 +30,35 @@ export async function GET() {
       }
     });
 
+    // 获取每个用户的最新文章时间
+    const { data: latestPosts, error: latestError } = await supabase
+      .from('t_x')
+      .select('user_id, created_at')
+      .not('user_id', 'is', null)
+      .order('created_at', { ascending: false });
+
+    if (latestError) {
+      console.error('Error fetching latest posts:', latestError);
+      return NextResponse.json(
+        { success: false, error: 'Failed to fetch latest posts' },
+        { status: 500 }
+      );
+    }
+
+    // 获取每个用户的最新文章时间
+    const userLatestPosts: { [key: string]: string } = {};
+    latestPosts?.forEach(item => {
+      if (item.user_id && !userLatestPosts[item.user_id]) {
+        userLatestPosts[item.user_id] = item.created_at;
+      }
+    });
+
     return NextResponse.json({
       success: true,
-      data: userStats
+      data: {
+        stats: userStats,
+        latestPosts: userLatestPosts
+      }
     });
   } catch (error) {
     console.error('Error in /api/x/users/stats:', error);

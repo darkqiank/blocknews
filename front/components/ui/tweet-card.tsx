@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { ExternalLink } from 'lucide-react';
 import { XData } from '@/db_lib/supabase';
@@ -128,6 +129,63 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     return parts.length > 0 ? parts : text;
   };
 
+  // 在正文中遇到 "RT @" 或 "quoted From @"（非开头）插入分割线
+  const renderTextWithSeparators = (text: string) => {
+    if (!text) return null;
+    
+    // 匹配 RT @ 或 quoted From @ 模式
+    const separatorRegex = /(RT\s@|quoted From\s@)/gi;
+    const firstNonWs = text.search(/\S/);
+    const insertPositions: number[] = [];
+    let match: RegExpExecArray | null;
+    
+    while ((match = separatorRegex.exec(text)) !== null) {
+      const idx = match.index;
+      // 只在非开头位置插入分割线
+      if (idx > -1 && idx !== firstNonWs) {
+        insertPositions.push(idx);
+      }
+    }
+
+    if (insertPositions.length === 0) {
+      return processTextWithLinks(text);
+    }
+
+    const parts: ReactNode[] = [];
+    let prev = 0;
+    
+    insertPositions.forEach((pos, i) => {
+      if (pos > prev) {
+        const segment = text.slice(prev, pos);
+        parts.push(
+          <span key={`seg-${i}`}>
+            {processTextWithLinks(segment)}
+          </span>
+        );
+      }
+      // 添加分割线
+      parts.push(
+        <div key={`sep-${i}`} className="border-t border-gray-200 my-3 pt-3">
+          <div className="text-xs text-gray-500 mb-2">
+            {text.slice(pos).startsWith('RT @') ? '转推' : '引用'}
+          </div>
+        </div>
+      );
+      prev = pos;
+    });
+    
+    if (prev < text.length) {
+      const segment = text.slice(prev);
+      parts.push(
+        <span key={`seg-last`}>
+          {processTextWithLinks(segment)}
+        </span>
+      );
+    }
+    
+    return parts;
+  };
+
   // 渲染推文内容
   const renderTweetContent = (data: Record<string, unknown>, isSubItem: boolean = false) => {
     const fullText = data.full_text as string;
@@ -138,7 +196,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
       <div className={`${isSubItem ? 'ml-4 pl-4 border-l-2 border-gray-200' : ''}`}>
         {fullText && (
           <div className="text-gray-900 mb-3 whitespace-pre-wrap break-words">
-            {processTextWithLinks(fullText)}
+            {renderTextWithSeparators(fullText)}
           </div>
         )}
         
