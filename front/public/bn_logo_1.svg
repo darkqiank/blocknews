@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 512 512" role="img" aria-label="BN icon">
+  <defs>
+    <linearGradient id="blueGrad" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#00baff"/>
+      <stop offset="50%" stop-color="#20a6ff"/>
+      <stop offset="100%" stop-color="#3b76e6"/>
+    </linearGradient>
+    <!-- subtle gloss highlight -->
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.25)"/>
+      <stop offset="40%" stop-color="rgba(255,255,255,0.08)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="18" flood-color="#0a4aa6" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- rounded square with gradient -->
+  <rect x="16" y="16" width="480" height="480" rx="120" ry="120"
+        fill="url(#blueGrad)" filter="url(#softShadow)"/>
+
+  <!-- gloss overlay to mimic glossy app icon -->
+  <rect x="16" y="16" width="480" height="240" rx="120" ry="120" fill="url(#gloss)" />
+
+  <!-- White bold BN text centered -->
+  <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle"
+        font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif"
+        font-weight="700" font-size="260" fill="#ffffff" letter-spacing="0.5">
+    BN
+  </text>
+
+  <!-- optional subtle inner subtle highlight on right edge -->
+  <path d="M420 64c0 0-18 8-26 24-8 16-8 40-8 40s18-6 34 0c16 6 26 28 26 28V64z"
+        fill="rgba(255,255,255,0.03)"/>
+</svg>

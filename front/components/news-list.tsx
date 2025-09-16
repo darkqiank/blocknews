@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { ExternalLink, Calendar, Globe } from 'lucide-react';
+import { CustomSelect, type SelectOption } from '@/components/ui/custom-select';
+import { ExternalLink, Calendar, Globe, ArrowUp, ReplyAll } from 'lucide-react';
 
 // Types
 interface NewsItem {
@@ -42,6 +43,59 @@ function saveSourcesCache(sources: SourceItem[]) {
   } catch {}
 }
 
+// 移动端筛选栏组件
+const MobileFilterBar = ({
+  sources,
+  selectedSource,
+  onSourceChange,
+  loadingSources,
+  newsCount
+}: {
+  sources: SourceItem[];
+  selectedSource: string | null;
+  onSourceChange: (source: string | null) => void;
+  loadingSources: boolean;
+  newsCount: number;
+}) => {
+  // 转换数据格式为 CustomSelect 需要的格式
+  const selectOptions: SelectOption[] = [
+    {
+      value: '',
+      label: '全部来源',
+      icon: <ReplyAll className="h-3 w-3" />
+    },
+    ...sources.map(s => ({
+      value: s.source,
+      label: s.label,
+      icon: <Globe className="h-3 w-3" />
+    }))
+  ];
+
+  return (
+    <div className="md:hidden w-full sticky top-16 z-30 bg-gray-50/95 backdrop-blur-sm border-b border-gray-200/50 shadow-sm mb-4">
+      <div className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <CustomSelect
+            options={selectOptions}
+            value={selectedSource}
+            onChange={(value) => {
+              onSourceChange(value);
+              // 筛选后自动回到顶部
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            placeholder="全部来源"
+            disabled={loadingSources}
+            className="flex-1"
+          />
+          <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+            {newsCount} 条
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // 侧边栏新闻源筛选组件
 const SourceSidebar = ({ 
   sources, 
@@ -57,7 +111,7 @@ const SourceSidebar = ({
   newsCount: number;
 }) => (
   <div className="w-64 flex-shrink-0">
-    <div className="sticky top-20 bg-white rounded-lg shadow-sm p-4">
+    <div className="bg-white rounded-lg shadow-sm p-4">
       {/* 标题区域 */}
       <div className="mb-4">
         <h1 className="text-xl font-bold text-gray-900 mb-1">实时新闻</h1>
@@ -106,16 +160,6 @@ const SourceSidebar = ({
             ))
           )}
         </div>
-        
-        {/* 清除筛选按钮 */}
-        {selectedSource && (
-          <button
-            onClick={() => onSourceChange(null)}
-            className="w-full mt-3 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-          >
-            清除筛选
-          </button>
-        )}
       </div>
     </div>
   </div>
@@ -131,6 +175,7 @@ export default function NewsList() {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState<boolean>(false);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
+  const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
 
   useEffect(() => {
     fetchSources();
@@ -144,6 +189,13 @@ export default function NewsList() {
     setHasMore(false);
     fetchNews(selectedSource, undefined, true);
   }, [selectedSource]);
+
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const fetchSources = useCallback(async () => {
     try {
@@ -257,7 +309,7 @@ export default function NewsList() {
       <div className="min-h-screen bg-background pt-16">
         <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-4 md:gap-8">
           {/* 侧边栏（桌面端） */}
-          <div className="hidden md:block">
+          <div className="hidden md:block md:sticky md:top-20 md:z-20 md:h-fit">
             <SourceSidebar
               sources={sources}
               selectedSource={selectedSource}
@@ -269,28 +321,13 @@ export default function NewsList() {
           
           {/* 主内容区域 */}
           <div className="flex-1">
-            {/* 移动端顶部筛选栏 */}
-            <div className="md:hidden w-full mb-4">
-              <Card className="bg-white shadow-sm">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-600 whitespace-nowrap">来源</span>
-                    <select
-                      value={selectedSource ?? ''}
-                      onChange={(e) => setSelectedSource(e.target.value || null)}
-                      className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-                      disabled={loadingSources}
-                    >
-                      <option value="">全部来源</option>
-                      {sources.map((s) => (
-                        <option key={s.source} value={s.source}>{s.label}</option>
-                      ))}
-                    </select>
-                    <span className="ml-auto text-xs text-gray-500">0 条</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <MobileFilterBar
+              sources={sources}
+              selectedSource={selectedSource}
+              onSourceChange={setSelectedSource}
+              loadingSources={loadingSources}
+              newsCount={0}
+            />
             <div className="space-y-6">
               {[...Array(5)].map((_, i) => (
                 <Card key={i} className="animate-pulse">
@@ -315,7 +352,7 @@ export default function NewsList() {
       <div className="min-h-screen bg-background pt-16">
         <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-4 md:gap-8">
           {/* 侧边栏（桌面端） */}
-          <div className="hidden md:block">
+          <div className="hidden md:block md:sticky md:top-20 md:z-20 md:h-fit">
             <SourceSidebar
               sources={sources}
               selectedSource={selectedSource}
@@ -327,27 +364,13 @@ export default function NewsList() {
           
           {/* 主内容区域 */}
           <div className="flex-1">
-            {/* 移动端顶部筛选栏 */}
-            <div className="md:hidden w-full mb-4">
-              <Card className="bg-white shadow-sm">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-600 whitespace-nowrap">来源</span>
-                    <select
-                      value={selectedSource ?? ''}
-                      onChange={(e) => setSelectedSource(e.target.value || null)}
-                      className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-                    >
-                      <option value="">全部来源</option>
-                      {sources.map((s) => (
-                        <option key={s.source} value={s.source}>{s.label}</option>
-                      ))}
-                    </select>
-                    <span className="ml-auto text-xs text-gray-500">0 条</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <MobileFilterBar
+              sources={sources}
+              selectedSource={selectedSource}
+              onSourceChange={setSelectedSource}
+              loadingSources={loadingSources}
+              newsCount={0}
+            />
             <Card className="border-destructive">
               <CardContent className="pt-6">
                 <div className="text-center">
@@ -372,7 +395,7 @@ export default function NewsList() {
     <div className="min-h-screen bg-background pt-16">
       <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 gap-4 md:gap-8">
         {/* 侧边栏（桌面端） */}
-        <div className="hidden md:block">
+        <div className="hidden md:block md:sticky md:top-20 md:z-20 md:h-fit">
           <SourceSidebar
             sources={sources}
             selectedSource={selectedSource}
@@ -384,27 +407,13 @@ export default function NewsList() {
         
         {/* 主内容区域 */}
         <main className="flex-1">
-        {/* 移动端顶部筛选栏 */}
-        <div className="md:hidden w-full mb-4">
-          <Card className="bg-white shadow-sm">
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600 whitespace-nowrap">来源</span>
-                <select
-                  value={selectedSource ?? ''}
-                  onChange={(e) => setSelectedSource(e.target.value || null)}
-                  className="flex-1 rounded-md border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
-                >
-                  <option value="">全部来源</option>
-                  {sources.map((s) => (
-                    <option key={s.source} value={s.source}>{s.label}</option>
-                  ))}
-                </select>
-                <span className="ml-auto text-xs text-gray-500">{news.length} 条</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <MobileFilterBar
+          sources={sources}
+          selectedSource={selectedSource}
+          onSourceChange={setSelectedSource}
+          loadingSources={loadingSources}
+          newsCount={news.length}
+        />
         {news.length === 0 ? (
           <Card>
             <CardContent className="pt-6">
@@ -423,7 +432,7 @@ export default function NewsList() {
         ) : (
           <div className="space-y-4">
             {news.map((item, index) => (
-              <Card key={index} className="group hover:shadow-md transition-all duration-200 border-l-4 border-l-transparent hover:border-l-primary">
+              <Card key={index} className="group hover:shadow-md transition-all duration-200 border-l-4 border-l-transparent hover:border-l-blue-500">
                 <CardHeader className="space-y-2 pb-3">
                   {/* 新闻标题 */}
                   <h2 className="text-lg font-medium leading-snug group-hover:text-primary transition-colors">
@@ -439,14 +448,14 @@ export default function NewsList() {
                   </h2>
                   
                   {/* 元数据 */}
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 text-xs text-muted-foreground">
+                  <div className="flex flex-row items-center gap-3 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       <span>{formatDate(item.pubDate)}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Globe className="h-3 w-3" />
-                      <span>{item.source}</span>
+                      <span>{sources.find(s => s.source === item.source)?.label || item.source}</span>
                     </div>
                   </div>
                 </CardHeader>
@@ -466,11 +475,17 @@ export default function NewsList() {
             <div className="text-center pt-8">
               {hasMore ? (
                 <button
-                  onClick={loadMore}
-                  disabled={loadingMore}
-                  className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mx-auto"
                 >
-                  {loadingMore ? '加载中...' : '加载更多'}
+                {loadingMore && (
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                {loadingMore ? '加载中...' : '加载更多'}
                 </button>
               ) : (
                 <span className="text-sm text-muted-foreground">没有更多了</span>
@@ -480,6 +495,17 @@ export default function NewsList() {
         )}
         </main>
       </div>
+
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-40 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 focus:outline-none"
+          aria-label="回到顶部"
+          title="回到顶部"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </button>
+      )}
 
       {/* Footer */}
       <footer className="border-t mt-16">
