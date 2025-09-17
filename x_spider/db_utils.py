@@ -124,6 +124,14 @@ def insert_x_data(data: Dict[str, Any]) -> None:
     VALUES %s
     ON CONFLICT (x_id) DO NOTHING
     """
+
+        # UPDATE SET 
+        # data = EXCLUDED.data,
+        # username = EXCLUDED.username,
+        # user_id = EXCLUDED.user_id,
+        # user_link = EXCLUDED.user_link,
+        # created_at = EXCLUDED.created_at
+
     
     conn = None
     try:

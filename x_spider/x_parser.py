@@ -74,7 +74,8 @@ def parse_text_from_tweet(tweet_results):
     legacy_full_text = legacy.get('full_text')
 
     if tweet_results.get('note_tweet'):
-        note_tweet_full_text = tweet_results.get('note_tweet_results', {}).get('result', {}).get('text')
+        note_tweet_full_text = tweet_results.get('note_tweet').get('note_tweet_results', {}).get('result', {}).get('text')
+        # print('has note_tweet:', note_tweet_full_text)
 
     if tweet_results.get('quoted_status_result'):
         quoted_status_result = tweet_results.get('quoted_status_result', {}).get('result')
