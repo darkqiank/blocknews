@@ -41,7 +41,7 @@ export function Navigation() {
                 <span className="text-white font-bold text-sm">BN</span>
               </div> */}
               <div className="w-8 h-8 flex items-center justify-center">
-                  <img src="/bn_logo.svg" alt="BN" className="w-8 h-8" />
+                  <img src="/bn_logo_ai.png" alt="BN" className="w-8 h-8" />
               </div>
 
               <span className="font-bold text-xl text-gray-900">BlockNews</span>
