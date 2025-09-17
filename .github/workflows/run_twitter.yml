@@ -36,8 +36,12 @@ jobs:
         ${{ secrets.X_HEADERS }}
         EOF
         python x.py
+        python ai_filter.py
       env:
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWD: ${{ secrets.DB_PASSWD }}
           DB_DATABASE: ${{ secrets.DB_DATABASE }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+          OPENAI_BASE_MODEL: ${{ secrets.OPENAI_BASE_MODEL }}

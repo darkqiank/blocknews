@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import Image from 'next/image';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Brain, Sparkles, Tag } from 'lucide-react';
 import { XData } from '@/db_lib/supabase';
 import { getProxiedImageUrl } from '@/db_lib/image-utils';
 
@@ -27,6 +27,47 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const isTweet = item.x_id.startsWith('tweet-');
   const isProfileConversation = item.x_id.startsWith('profile-conversation-');
+  
+  // 提取AI分析结果
+  const getAIResult = () => {
+    try {
+      const data = typeof item.data === 'string' ? JSON.parse(item.data) : item.data;
+      return data?.ai_result || null;
+    } catch {
+      return null;
+    }
+  };
+  
+  const aiResult = getAIResult();
+  
+  // 渲染AI分析结果
+  const renderAIAnalysis = () => {
+    // 只显示重要信号（is_important: true 且有 summary）
+    if (!aiResult || !aiResult.summary || aiResult.is_important === false) return null;
+    
+    return (
+      <div className="mb-3 bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+        <div className="flex items-start space-x-2">
+          <Brain className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm text-gray-800 mb-2">{aiResult.summary}</p>
+            {aiResult.highlight_label && aiResult.highlight_label.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {aiResult.highlight_label.map((label: string, index: number) => (
+                  <span
+                    key={index}
+                    className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs"
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
   
   // 监听 ESC 关闭预览
   useEffect(() => {
@@ -363,6 +404,9 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
 
       {/* 内容区域 */}
       <div className="border-t pt-3">
+        {/* AI分析结果 - 放在正文开头 */}
+        {renderAIAnalysis()}
+        
         {isTweet && renderTweetContent(item.data)}
         
         {isProfileConversation && Array.isArray(item.data) && (

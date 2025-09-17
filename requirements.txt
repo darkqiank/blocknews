@@ -26,3 +26,4 @@ html5lib
 readability-lxml
 
 pytz
+openai

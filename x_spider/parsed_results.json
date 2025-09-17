@@ -1,0 +1,57 @@
+[
+    {
+        "x_id": "tweet-1968237698898141465",
+        "summary": "Cyber团队新项目Surf，或利好CYBER。",
+        "highlight_label": [
+            "Surf",
+            "Cyber",
+            "AI",
+            "空投预期"
+        ],
+        "model": "gemini-2.5-pro"
+    },
+    {
+        "x_id": "tweet-1968231672740188509",
+        "summary": "美联储利率决议在即，市场预期降息。",
+        "highlight_label": [
+            "美联储",
+            "利率决议",
+            "降息预期",
+            "BTC"
+        ],
+        "model": "gemini-2.5-pro"
+    },
+    {
+        "x_id": "tweet-1968202372276163029",
+        "summary": "马斯克称xAI的Grok 5或能实现AGI。",
+        "highlight_label": [
+            "Elon Musk",
+            "xAI",
+            "Grok 5",
+            "AGI"
+        ],
+        "model": "gemini-2.5-pro"
+    },
+    {
+        "x_id": "tweet-1968201731483041969",
+        "summary": "特斯拉8月美国销量超后续四名总和。",
+        "highlight_label": [
+            "Tesla",
+            "$TSLA",
+            "销量",
+            "市场份额"
+        ],
+        "model": "gemini-2.5-pro"
+    },
+    {
+        "x_id": "tweet-1968198626515300549",
+        "summary": "马斯克称星链直连手机V2将更强大。",
+        "highlight_label": [
+            "Starlink",
+            "SpaceX",
+            "Direct to Phone",
+            "V2"
+        ],
+        "model": "gemini-2.5-pro"
+    }
+]
