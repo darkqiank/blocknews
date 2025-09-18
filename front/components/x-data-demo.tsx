@@ -35,7 +35,7 @@ interface XData {
       is_important: boolean;
       model?: string;
     };
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

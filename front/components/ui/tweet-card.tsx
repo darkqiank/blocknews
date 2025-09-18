@@ -3,7 +3,7 @@
 import { useEffect, useState, createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import Image from 'next/image';
-import { ExternalLink, Brain, Sparkles, Tag } from 'lucide-react';
+import { ExternalLink, Sparkles } from 'lucide-react';
 import { XData } from '@/db_lib/supabase';
 import { getProxiedImageUrl } from '@/db_lib/image-utils';
 
