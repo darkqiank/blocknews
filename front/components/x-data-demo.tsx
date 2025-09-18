@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { TweetCard, TweetCardsProvider } from '@/components/ui/tweet-card';
+import { TweetCard } from '@/components/ui/tweet-card';
 import { getProxiedImageUrl } from '@/db_lib/image-utils';
 
 interface XUser {
@@ -206,7 +206,6 @@ export function XDataDemo() {
   }
 
   return (
-    <TweetCardsProvider>
       <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
       {/* 页面标题 */}
       {/* <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
@@ -578,6 +577,5 @@ export function XDataDemo() {
         )}
       </div>
       </div>
-    </TweetCardsProvider>
   );
 }

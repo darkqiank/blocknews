@@ -1,31 +1,12 @@
 'use client';
 
-import { useEffect, useState, createContext, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { ExternalLink, Sparkles } from 'lucide-react';
 import { XData } from '@/db_lib/supabase';
 import { getProxiedImageUrl } from '@/db_lib/image-utils';
 
-// 全局选中状态上下文
-const SelectedCardContext = createContext<{
-  selectedCardId: string | null;
-  setSelectedCardId: (id: string | null) => void;
-}>({
-  selectedCardId: null,
-  setSelectedCardId: () => {},
-});
-
-// Provider 组件
-export function TweetCardsProvider({ children }: { children: React.ReactNode }) {
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
-  
-  return (
-    <SelectedCardContext.Provider value={{ selectedCardId, setSelectedCardId }}>
-      {children}
-    </SelectedCardContext.Provider>
-  );
-}
 
 interface XUser {
   user_id: string;
@@ -97,10 +78,8 @@ function CollapsibleText({
 
 export function TweetCard({ item, users = [] }: TweetCardProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const { selectedCardId, setSelectedCardId } = useContext(SelectedCardContext);
   const isTweet = item.x_id.startsWith('tweet-');
   const isProfileConversation = item.x_id.startsWith('profile-conversation-');
-  const isSelected = selectedCardId === item.x_id;
   
   // 提取AI分析结果
   const getAIResult = () => {
@@ -453,30 +432,10 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     return date.toLocaleString('zh-CN');
   };
 
-  const handleCardClick = () => {
-    if (isSelected) {
-      setSelectedCardId(null); // 取消选中
-    } else {
-      setSelectedCardId(item.x_id); // 选中当前卡片
-    }
-  };
 
   return (
     <div 
-      className={`p-3 sm:p-4 border rounded-lg transition-all w-full cursor-pointer ${
-        isSelected
-          ? 'border-blue-500 ring-1 ring-blue-500'
-          : 'border-gray-200 hover:bg-gray-50'
-      }`}
-      onClick={handleCardClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleCardClick();
-        }
-      }}
+      className={`p-3 sm:p-4 border rounded-lg transition-all w-full border-gray-200 hover:bg-gray-50 hover:border-blue-500 hover:ring-1 hover:ring-blue-500`}
     >
       {/* 头部信息 */}
       <div className="flex justify-between items-start mb-3">
