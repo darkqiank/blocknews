@@ -76,18 +76,19 @@ def get_latest_x_data(limit: int = 20, skip_analyzed: bool = True) -> List[Dict[
         conn = get_db_connection()
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
             if skip_analyzed:
-                # 过滤已分析的内容（data中不包含ai_result字段）
+                # 过滤已分析的内容（more_info中不包含ai_result字段）
                 query = """
-                    SELECT id, x_id, item_type, data, username, user_id, user_link, created_at 
+                    SELECT * FROM (
+                    SELECT id, x_id, item_type, data, username, user_id, user_link, created_at, more_info 
                     FROM t_x 
-                    WHERE NOT (data ? 'ai_result')
                     ORDER BY created_at DESC 
-                    LIMIT %s
+                    LIMIT %s ) AS t
+                    WHERE NOT (more_info ? 'ai_result')
                 """
             else:
                 # 获取所有数据
                 query = """
-                    SELECT id, x_id, item_type, data, username, user_id, user_link, created_at 
+                    SELECT id, x_id, item_type, data, username, user_id, user_link, created_at, more_info 
                     FROM t_x 
                     ORDER BY created_at DESC 
                     LIMIT %s
@@ -266,7 +267,7 @@ def parse_llm_result(result: str) -> List[Dict[str, Any]]:
         return []
 
 def save_llm_result(ai_results: List[Dict[str, Any]], analyzed_x_ids: List[str]) -> None:
-    """将AI分析结果保存到数据库，并标记所有已分析的推文"""
+    """将AI分析结果保存到数据库的more_info字段，并标记所有已分析的推文"""
     from db_utils import get_db_connection
     
     conn = None
@@ -279,30 +280,31 @@ def save_llm_result(ai_results: List[Dict[str, Any]], analyzed_x_ids: List[str])
             for result in ai_results:
                 x_id = result['x_id']
                 
-                # 获取当前记录的data字段
-                cur.execute("SELECT data FROM t_x WHERE x_id = %s", (x_id,))
+                # 获取当前记录的more_info字段
+                cur.execute("SELECT more_info FROM t_x WHERE x_id = %s", (x_id,))
                 row = cur.fetchone()
                 
                 if not row:
                     print(f"Warning: No record found for x_id: {x_id}")
                     continue
                 
-                current_data = row[0]
-                if isinstance(current_data, str):
-                    current_data = json.loads(current_data)
+                current_more_info = row[0] or {}
+                if isinstance(current_more_info, str):
+                    current_more_info = json.loads(current_more_info)
                 
-                # 在data中添加ai_result字段（重要信号）
-                current_data['ai_result'] = {
+                # 在more_info中添加ai_result字段（重要信号）
+                current_more_info['ai_result'] = {
                     'summary': result['summary'],
                     'highlight_label': result['highlight_label'],
                     'analyzed_at': datetime.now().isoformat(),
-                    'is_important': True
+                    'is_important': True,
+                    'model': result.get('model', base_model)
                 }
                 
                 # 更新数据库
                 cur.execute(
-                    "UPDATE t_x SET data = %s WHERE x_id = %s",
-                    (json.dumps(current_data), x_id)
+                    "UPDATE t_x SET more_info = %s WHERE x_id = %s",
+                    (json.dumps(current_more_info), x_id)
                 )
                 updated_count += 1
             
@@ -311,29 +313,30 @@ def save_llm_result(ai_results: List[Dict[str, Any]], analyzed_x_ids: List[str])
             no_signal_x_ids = [x_id for x_id in analyzed_x_ids if x_id not in result_x_ids]
             
             for x_id in no_signal_x_ids:
-                # 获取当前记录的data字段
-                cur.execute("SELECT data FROM t_x WHERE x_id = %s", (x_id,))
+                # 获取当前记录的more_info字段
+                cur.execute("SELECT more_info FROM t_x WHERE x_id = %s", (x_id,))
                 row = cur.fetchone()
                 
                 if not row:
                     continue
                 
-                current_data = row[0]
-                if isinstance(current_data, str):
-                    current_data = json.loads(current_data)
+                current_more_info = row[0] or {}
+                if isinstance(current_more_info, str):
+                    current_more_info = json.loads(current_more_info)
                 
                 # 标记为已分析但无重要信号
-                current_data['ai_result'] = {
+                current_more_info['ai_result'] = {
                     'analyzed_at': datetime.now().isoformat(),
                     'is_important': False,
                     'summary': None,
-                    'highlight_label': []
+                    'highlight_label': [],
+                    'model': base_model
                 }
                 
                 # 更新数据库
                 cur.execute(
-                    "UPDATE t_x SET data = %s WHERE x_id = %s",
-                    (json.dumps(current_data), x_id)
+                    "UPDATE t_x SET more_info = %s WHERE x_id = %s",
+                    (json.dumps(current_more_info), x_id)
                 )
                 updated_count += 1
         
@@ -354,7 +357,7 @@ def save_llm_result(ai_results: List[Dict[str, Any]], analyzed_x_ids: List[str])
 
 def main():
     print(f"🚀 开始获取推文数据...")
-    x_data = get_latest_x_data(limit=20, skip_analyzed=False)
+    x_data = get_latest_x_data(limit=20, skip_analyzed=True)
         
     if not x_data:
         print("⚠️ 未找到任何推文数据")
@@ -383,9 +386,6 @@ def main():
     if not parsed_results:
         print(f"⚠️ 未能解析出AI结果")
         print(f"AI原始返回: {llm_result[:500]}...")
-        # 标记为已分析但无有效结果
-        print("📝 标记推文为已分析（解析失败）...")
-        save_llm_result([], analyzed_x_ids)
         return
         
     print(f"🎉 成功解析出 {len(parsed_results)} 条高价值信号")

@@ -105,8 +105,13 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
   // 提取AI分析结果
   const getAIResult = () => {
     try {
-      const data = typeof item.data === 'string' ? JSON.parse(item.data) : item.data;
-      return data?.ai_result || null;
+      // 优先从 more_info 字段获取 ai_result
+      if (item.more_info?.ai_result) {
+        return item.more_info.ai_result;
+      }
+      // 兼容性处理：如果 more_info 中没有，尝试从 data 字段获取（用于迁移期间）
+      // const data = typeof item.data === 'string' ? JSON.parse(item.data) : item.data;
+      // return data?.ai_result || null;
     } catch {
       return null;
     }

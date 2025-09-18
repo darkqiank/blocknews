@@ -181,6 +181,16 @@ export interface XData {
   user_id?: string;
   user_link?: string;
   created_at: string;
+  more_info?: {
+    ai_result?: {
+      summary?: string;
+      highlight_label?: string[];
+      analyzed_at: string;
+      is_important: boolean;
+      model?: string;
+    };
+    [key: string]: any; // Allow for future extensions
+  };
 }
 
 // X user helper functions
@@ -287,8 +297,8 @@ export async function getPagedXData(params: PagedXDataParams = {}): Promise<Page
   }
   if (onlyImportant) {
     // Filter for items that have AI analysis and are marked as important
-    query = query.not('data->ai_result', 'is', null)
-                 .eq('data->ai_result->is_important', true);
+    query = query.not('more_info->ai_result', 'is', null)
+                 .eq('more_info->ai_result->is_important', true);
   }
 
   const { data, error } = await query;

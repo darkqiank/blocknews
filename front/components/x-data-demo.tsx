@@ -27,6 +27,16 @@ interface XData {
   user_id?: string;
   user_link?: string;
   created_at: string;
+  more_info?: {
+    ai_result?: {
+      summary?: string;
+      highlight_label?: string[];
+      analyzed_at: string;
+      is_important: boolean;
+      model?: string;
+    };
+    [key: string]: any;
+  };
 }
 
 export function XDataDemo() {
