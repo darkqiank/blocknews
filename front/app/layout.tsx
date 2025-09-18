@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BlockNews - 实时新闻聚合",
-  description: "最新新闻资讯聚合平台，采用现代化设计，支持多RSS源聚合",
+  title: "Beno - 高价值信号发现",
+  description: "最新高价值信号发现平台，现代化设计",
 };
 
 export default function RootLayout({

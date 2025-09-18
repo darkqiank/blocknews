@@ -9,6 +9,6 @@ export default function XPage() {
 }
 
 export const metadata = {
-  title: 'X (Twitter) Data - BlockNews',
+  title: '见解 insights - Beno',
   description: 'View and manage X (Twitter) data and users',
 };

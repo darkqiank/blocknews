@@ -1,11 +1,31 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { ExternalLink, Brain, Sparkles, Tag } from 'lucide-react';
 import { XData } from '@/db_lib/supabase';
 import { getProxiedImageUrl } from '@/db_lib/image-utils';
+
+// 全局选中状态上下文
+const SelectedCardContext = createContext<{
+  selectedCardId: string | null;
+  setSelectedCardId: (id: string | null) => void;
+}>({
+  selectedCardId: null,
+  setSelectedCardId: () => {},
+});
+
+// Provider 组件
+export function TweetCardsProvider({ children }: { children: React.ReactNode }) {
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  
+  return (
+    <SelectedCardContext.Provider value={{ selectedCardId, setSelectedCardId }}>
+      {children}
+    </SelectedCardContext.Provider>
+  );
+}
 
 interface XUser {
   user_id: string;
@@ -23,10 +43,64 @@ interface TweetCardProps {
   users?: XUser[]; // 用户列表数据，用于获取头像信息
 }
 
+// 可折叠文本组件
+function CollapsibleText({ 
+  text, 
+  limit = 500,
+  renderContent 
+}: { 
+  text: string; 
+  limit?: number;
+  renderContent?: (text: string) => ReactNode;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  
+  if (!text) return null;
+  
+  const isLong = text.length > limit;
+  const displayText = expanded ? text : text.slice(0, limit);
+  
+  return (
+    <div className="text-gray-900 whitespace-pre-wrap break-words">
+      {renderContent ? renderContent(displayText) : displayText}
+      {isLong && !expanded && (
+        <>
+          <span className="text-gray-500">...</span>
+          <button
+            className="font-semibold text-blue-600 hover:text-blue-800 hover:underline text-sm ml-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded(true);
+            }}
+          >
+            展开全文
+          </button>
+        </>
+      )}
+      {isLong && expanded && (
+        <>
+          <span className="text-gray-500">  </span>
+        <button
+          className="font-semibold text-blue-600 hover:text-blue-800 hover:underline text-sm ml-1"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded(false);
+          }}
+        >
+          <span>收起</span>
+        </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 export function TweetCard({ item, users = [] }: TweetCardProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const { selectedCardId, setSelectedCardId } = useContext(SelectedCardContext);
   const isTweet = item.x_id.startsWith('tweet-');
   const isProfileConversation = item.x_id.startsWith('profile-conversation-');
+  const isSelected = selectedCardId === item.x_id;
   
   // 提取AI分析结果
   const getAIResult = () => {
@@ -46,17 +120,20 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     if (!aiResult || !aiResult.summary || aiResult.is_important === false) return null;
     
     return (
-      <div className="mb-3 bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+      <div className="mb-3 bg-white p-3 rounded-xl">
         <div className="flex items-start space-x-2">
-          <Brain className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+          <Sparkles className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-sm text-gray-800 mb-2">{aiResult.summary}</p>
+            <p className="text-sm text-gray-800 mb-2">
+              <span className="font-semibold text-blue-700 mr-1">AI 解读：</span>
+              {aiResult.summary}
+            </p>
             {aiResult.highlight_label && aiResult.highlight_label.length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {aiResult.highlight_label.map((label: string, index: number) => (
                   <span
                     key={index}
-                    className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs"
+                    className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs"
                   >
                     {label}
                   </span>
@@ -189,18 +266,26 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     }
 
     if (insertPositions.length === 0) {
-      return processTextWithLinks(text);
+      // return processTextWithLinks(text);
+      return <span>
+        <CollapsibleText 
+          text={text}
+          renderContent={(text) => processTextWithLinks(text)}
+        />
+      </span>
     }
 
     const parts: ReactNode[] = [];
     let prev = 0;
-    
     insertPositions.forEach((pos, i) => {
       if (pos > prev) {
         const segment = text.slice(prev, pos);
         parts.push(
           <span key={`seg-${i}`}>
-            {processTextWithLinks(segment)}
+            <CollapsibleText 
+              text={segment}
+              renderContent={(text) => processTextWithLinks(text)}
+            />
           </span>
         );
       }
@@ -219,7 +304,10 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
       const segment = text.slice(prev);
       parts.push(
         <span key={`seg-last`}>
-          {processTextWithLinks(segment)}
+          <CollapsibleText 
+            text={segment}
+            renderContent={(text) => processTextWithLinks(text)}
+          />
         </span>
       );
     }
@@ -236,7 +324,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     return (
       <div className={`${isSubItem ? 'ml-4 pl-4 border-l-2 border-gray-200' : ''}`}>
         {fullText && (
-          <div className="text-gray-900 mb-3 whitespace-pre-wrap break-words">
+          <div className="mb-3">
             {renderTextWithSeparators(fullText)}
           </div>
         )}
@@ -315,7 +403,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     );
   };
 
-  // 提取展示的创建时间，避免使用 any
+  // 提取展示的创建时间，实现相对时间显示
   const getDisplayCreatedAt = (x: XData): string => {
     const rawData: unknown = x.data;
     let createdAt: string | undefined;
@@ -338,11 +426,53 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
       }
     }
     const finalVal = createdAt ?? x.created_at;
-    return new Date(finalVal).toLocaleString('zh-CN');
+    const date = new Date(finalVal);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / (60 * 1000));
+    const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
+    const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+    
+    // 一天内显示相对时间
+    if (diffDays < 1) {
+      if (diffHours >= 1) {
+        return `${diffHours}小时前`;
+      }
+      if (diffMinutes >= 1) {
+        return `${diffMinutes}分钟前`;
+      }
+      return '刚刚';
+    }
+    
+    // 超过一天显示完整时间
+    return date.toLocaleString('zh-CN');
+  };
+
+  const handleCardClick = () => {
+    if (isSelected) {
+      setSelectedCardId(null); // 取消选中
+    } else {
+      setSelectedCardId(item.x_id); // 选中当前卡片
+    }
   };
 
   return (
-    <div className="p-3 sm:p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full">
+    <div 
+      className={`p-3 sm:p-4 border rounded-lg transition-all w-full cursor-pointer ${
+        isSelected
+          ? 'border-blue-500 ring-1 ring-blue-500'
+          : 'border-gray-200 hover:bg-gray-50'
+      }`}
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
+    >
       {/* 头部信息 */}
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center space-x-3 min-w-0 flex-1">

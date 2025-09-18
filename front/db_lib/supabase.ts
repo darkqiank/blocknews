@@ -256,6 +256,7 @@ export interface PagedXDataParams {
   itemType?: string;
   limit?: number;
   beforeCreatedAt?: string; // ISO timestamp cursor for created_at based pagination
+  onlyImportant?: boolean; // Filter for only important AI analyzed content
 }
 
 export interface PagedXDataResult {
@@ -265,7 +266,7 @@ export interface PagedXDataResult {
 }
 
 export async function getPagedXData(params: PagedXDataParams = {}): Promise<PagedXDataResult> {
-  const { userId, itemType, limit = 20, beforeCreatedAt } = params;
+  const { userId, itemType, limit = 20, beforeCreatedAt, onlyImportant } = params;
   const pageSize = Math.max(1, Math.min(50, limit));
 
   let query = supabase
@@ -283,6 +284,11 @@ export async function getPagedXData(params: PagedXDataParams = {}): Promise<Page
   if (beforeCreatedAt) {
     // Use created_at timestamp for cursor-based pagination
     query = query.lt('created_at', beforeCreatedAt);
+  }
+  if (onlyImportant) {
+    // Filter for items that have AI analysis and are marked as important
+    query = query.not('data->ai_result', 'is', null)
+                 .eq('data->ai_result->is_important', true);
   }
 
   const { data, error } = await query;

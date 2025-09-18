@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { TweetCard } from '@/components/ui/tweet-card';
+import { TweetCard, TweetCardsProvider } from '@/components/ui/tweet-card';
 import { getProxiedImageUrl } from '@/db_lib/image-utils';
 
 interface XUser {
@@ -41,6 +41,7 @@ export function XDataDemo() {
   const [userLatestPosts, setUserLatestPosts] = useState<{ [key: string]: string }>({});
   const [isUserListExpanded, setIsUserListExpanded] = useState<boolean>(false);
   const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
+  const [onlyImportant, setOnlyImportant] = useState<boolean>(false);
 
   useEffect(() => {
     fetchUsers();
@@ -76,6 +77,20 @@ export function XDataDemo() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUserId]);
 
+  useEffect(() => {
+    // 当重要性过滤改变时重新获取数据
+    fetchLatestData(true);
+    setNextCursor(null);
+    setHasMore(false);
+    
+    // 滚动到顶部
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onlyImportant]);
+
   const fetchUsers = async () => {
     try {
       const response = await fetch('/api/x/users');
@@ -107,6 +122,9 @@ export function XDataDemo() {
       if (selectedUserId) {
         url += `&userId=${selectedUserId}`;
       }
+      if (onlyImportant) {
+        url += `&onlyImportant=true`;
+      }
       
       const response = await fetch(url);
       const result = await response.json();
@@ -135,6 +153,9 @@ export function XDataDemo() {
       let url = `/api/x/latest?limit=10&paginated=true&cursor=${encodeURIComponent(nextCursor)}`;
       if (selectedUserId) {
         url += `&userId=${selectedUserId}`;
+      }
+      if (onlyImportant) {
+        url += `&onlyImportant=true`;
       }
       
       const response = await fetch(url);
@@ -175,7 +196,8 @@ export function XDataDemo() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
+    <TweetCardsProvider>
+      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
       {/* 页面标题 */}
       {/* <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">X (Twitter) 数据管理</h1>
@@ -432,6 +454,25 @@ export function XDataDemo() {
                     `最新 X 数据 (${latestData.length})`
                   }
                 </h2>
+                
+                {/* 重要性切换开关 */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600 font-medium">只看重要</span>
+                  <button
+                    onClick={() => setOnlyImportant(!onlyImportant)}
+                    className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
+                      onlyImportant ? 'bg-blue-500' : 'bg-gray-300'
+                    }`}
+                    title={onlyImportant ? '关闭重要筛选' : '开启重要筛选'}
+                  >
+                    <span
+                      className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform duration-200 shadow-sm ${
+                        onlyImportant ? 'translate-x-4' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+                
                 <button
                   onClick={() => fetchLatestData(true)}
                   disabled={loading}
@@ -526,6 +567,7 @@ export function XDataDemo() {
           </button>
         )}
       </div>
-    </div>
+      </div>
+    </TweetCardsProvider>
   );
 }

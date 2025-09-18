@@ -7,22 +7,22 @@ import { useState } from 'react';
 
 const navigationItems = [
   {
-    name: '实时新闻',
+    name: '见闻 news',
     href: '/',
     icon: Home,
-    description: '最新新闻聚合'
+    description: '新闻见闻'
   },
   {
-    name: '推文披露',
+    name: '见解 insights',
     href: '/x',
     icon: X,
-    description: 'X (Twitter) 数据管理'
+    description: '观点见解'
   },
   {
-    name: 'RSS订阅',
+    name: '订阅 rss',
     href: '/rss',
     icon: Rss,
-    description: 'RSS源管理和订阅'
+    description: '订阅管理'
   }
 ];
 
@@ -44,7 +44,7 @@ export function Navigation() {
                   <img src="/bn_logo_ai.png" alt="BN" className="w-8 h-8" />
               </div>
 
-              <span className="font-bold text-xl text-gray-900">BlockNews</span>
+              <span className="font-bold text-xl text-gray-900">Beno</span>
             </Link>
           </div>
 

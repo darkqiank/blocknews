@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
     const itemType = searchParams.get('itemType') || undefined;
     const cursor = searchParams.get('cursor'); // Now expects created_at timestamp string
     const usePagination = searchParams.get('paginated') === 'true';
+    const onlyImportant = searchParams.get('onlyImportant') === 'true';
 
     if (usePagination) {
       // Use pagination for better performance with large datasets
@@ -16,7 +17,8 @@ export async function GET(request: NextRequest) {
         userId,
         itemType,
         limit,
-        beforeCreatedAt: cursor || undefined
+        beforeCreatedAt: cursor || undefined,
+        onlyImportant
       });
 
       return NextResponse.json({
