@@ -10,6 +10,7 @@ client = OpenAI(
     base_url=os.environ.get("OPENAI_BASE_URL"),
 )
 base_model = os.environ.get("OPENAI_BASE_MODEL")
+fallback_model = os.environ.get("OPENAI_FALLBACK_MODEL")
 
 base_system_prompt = ""
 
@@ -17,42 +18,94 @@ with open('./prompts/x_signal.txt', 'r', encoding='utf-8') as file:
     base_system_prompt = file.read()
 
 
+# def call_llm_api(prompt):
+#     """调用 OpenAI API 进行推文分析"""
+#     try:
+#         # 检查必要的配置
+#         if not base_model:
+#             return "API配置错误: OPENAI_BASE_MODEL 环境变量未设置"
+        
+#         if not client.api_key:
+#             return "API配置错误: OPENAI_API_KEY 环境变量未设置"
+        
+#         print(f"使用模型: {base_model}")
+#         print(f"API Base URL: {client.base_url}")
+        
+#         stream = client.chat.completions.create(
+#             model=base_model,
+#             max_tokens=20000,
+#             stream=True,
+#             messages=[
+#                 {"role": "system", "content": base_system_prompt},
+#                 {"role": "user", "content": prompt},
+#             ],
+#         )
+        
+#         # 收集流式响应的内容
+#         content = ""
+#         for chunk in stream:
+#             # 检查是否有choices且不为空
+#             if chunk.choices and len(chunk.choices) > 0:
+#                 delta = chunk.choices[0].delta
+#                 if delta.content is not None:
+#                     chunk_content = delta.content
+#                     content += chunk_content
+
+#         return content
+#     except Exception as e:
+        # print(f"API调用详细错误: {e}")
+        # import traceback
+        # traceback.print_exc()
+        # return f"API调用失败: {str(e)}"
+
+
 def call_llm_api(prompt):
-    """调用 OpenAI API 进行推文分析"""
+    """调用 OpenAI API 进行推文分析，失败时自动切换 fallback_model"""
     try:
-        # 检查必要的配置
         if not base_model:
             return "API配置错误: OPENAI_BASE_MODEL 环境变量未设置"
         
         if not client.api_key:
             return "API配置错误: OPENAI_API_KEY 环境变量未设置"
         
-        print(f"使用模型: {base_model}")
-        print(f"API Base URL: {client.base_url}")
-        
-        stream = client.chat.completions.create(
-            model=base_model,
-            max_tokens=20000,
-            stream=True,
-            messages=[
-                {"role": "system", "content": base_system_prompt},
-                {"role": "user", "content": prompt},
-            ],
-        )
-        
-        # 收集流式响应的内容
-        content = ""
-        for chunk in stream:
-            # 检查是否有choices且不为空
-            if chunk.choices and len(chunk.choices) > 0:
-                delta = chunk.choices[0].delta
-                if delta.content is not None:
-                    chunk_content = delta.content
-                    content += chunk_content
+        def run_call(model_name):
+            print(f"使用模型: {model_name}")
+            print(f"API Base URL: {client.base_url}")
 
-        return content
+            stream = client.chat.completions.create(
+                model=model_name,
+                max_tokens=20000,
+                stream=True,
+                messages=[
+                    {"role": "system", "content": base_system_prompt},
+                    {"role": "user", "content": prompt},
+                ],
+            )
+
+            content = ""
+            for chunk in stream:
+                if chunk.choices and len(chunk.choices) > 0:
+                    delta = chunk.choices[0].delta
+                    if delta.content is not None:
+                        content += delta.content
+            return content
+
+        try:
+            # 优先使用 base_model
+            return run_call(base_model)
+        except Exception as inner_e:
+            print(f"主模型调用失败: {inner_e}")
+            if fallback_model:
+                try:
+                    print(f"尝试使用 fallback_model: {fallback_model}")
+                    return run_call(fallback_model)
+                except Exception as fallback_e:
+                    print(f"备用模型调用失败: {fallback_e}")
+                    return f"API调用失败 (备用模型也失败): {str(fallback_e)}"
+            else:
+                return f"API调用失败 (未配置备用模型): {str(inner_e)}"
+
     except Exception as e:
-        print(f"API调用详细错误: {e}")
         import traceback
         traceback.print_exc()
         return f"API调用失败: {str(e)}"
