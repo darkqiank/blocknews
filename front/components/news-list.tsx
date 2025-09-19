@@ -72,7 +72,7 @@ const MobileFilterBar = ({
   ];
 
   return (
-    <div className="md:hidden w-full sticky top-16 z-30 bg-gray-50/95 backdrop-blur-sm border-b border-gray-200/50 shadow-sm mb-4">
+    <div className="md:hidden w-full sticky top-16 z-30 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm mb-4">
       <div className="px-4 py-3">
         <div className="flex items-center gap-3">
           <CustomSelect
@@ -87,7 +87,7 @@ const MobileFilterBar = ({
             disabled={loadingSources}
             className="flex-1"
           />
-          <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+          <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
             {newsCount} 条
           </div>
         </div>
@@ -111,11 +111,11 @@ const SourceSidebar = ({
   newsCount: number;
 }) => (
   <div className="w-64 flex-shrink-0">
-    <div className="bg-white rounded-lg shadow-sm p-4">
+    <div className="bg-card rounded-lg shadow-sm p-4">
       {/* 标题区域 */}
       <div className="mb-4">
-        <h1 className="text-xl font-bold text-gray-900 mb-1">实时新闻</h1>
-        <p className="text-sm text-gray-600">
+        <h1 className="text-xl font-bold text-foreground mb-1">实时新闻</h1>
+        <p className="text-sm text-muted-foreground">
           {newsCount} 条新闻
           {selectedSource && ` · ${sources.find(s => s.source === selectedSource)?.label || selectedSource}`}
         </p>
@@ -123,15 +123,15 @@ const SourceSidebar = ({
       
       {/* 新闻源筛选 */}
       <div className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-900 mb-3">新闻来源</h3>
+        <h3 className="text-sm font-medium text-foreground mb-3">新闻来源</h3>
         
         {/* 全部来源按钮 */}
         <button
           onClick={() => onSourceChange(null)}
           className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
             selectedSource === null 
-              ? 'bg-blue-600 text-white' 
-              : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
           }`}
         >
           全部来源
@@ -148,10 +148,10 @@ const SourceSidebar = ({
               <button
                 key={source.source}
                 onClick={() => onSourceChange(source.source)}
-                className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   selectedSource === source.source 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
                 title={`查看 ${source.label} 的新闻`}
               >
@@ -474,11 +474,11 @@ export default function NewsList() {
             {/* 加载更多 */}
             <div className="text-center pt-8">
               {hasMore ? (
-                <button
-                onClick={loadMore}
-                disabled={loadingMore}
-                className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mx-auto"
-                >
+          <button
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="px-4 sm:px-6 py-2 sm:py-3 bg-primary text-primary-foreground text-sm sm:text-base rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mx-auto"
+          >
                 {loadingMore && (
                   <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -499,7 +499,7 @@ export default function NewsList() {
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 z-40 p-3 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 focus:outline-none"
+          className="fixed bottom-6 right-6 z-40 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 focus:outline-none"
           aria-label="回到顶部"
           title="回到顶部"
         >

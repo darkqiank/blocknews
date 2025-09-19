@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { TweetCard } from '@/components/ui/tweet-card';
 import { getProxiedImageUrl } from '@/db_lib/image-utils';
+import { formatRelativeTime } from '@/components/ui/time-utils';
 
 interface XUser {
   user_id: string;
@@ -51,7 +52,7 @@ export function XDataDemo() {
   const [userLatestPosts, setUserLatestPosts] = useState<{ [key: string]: string }>({});
   const [isUserListExpanded, setIsUserListExpanded] = useState<boolean>(false);
   const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
-  const [onlyImportant, setOnlyImportant] = useState<boolean>(false);
+  const [onlyImportant, setOnlyImportant] = useState<boolean>(true);
 
   useEffect(() => {
     fetchUsers();
@@ -206,6 +207,7 @@ export function XDataDemo() {
   }
 
   return (
+    <div className="min-h-screen bg-background">
       <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-8">
       {/* 页面标题 */}
       {/* <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
@@ -218,18 +220,18 @@ export function XDataDemo() {
         {/* 移动端窄侧栏头像轨道 */}
         <div className={`md:hidden transition-all duration-300 ${isUserListExpanded ? 'w-0 opacity-0' : 'w-14 sm:w-16'} flex-shrink-0`}>
           <div className="sticky top-20">
-            <Card className="bg-white shadow-sm py-2 relative">
+            <Card className="bg-card shadow-sm py-2 relative">
               {/* 展开按钮 - 固定在顶部 */}
               <div className="absolute top-0 left-0 right-0 z-20 rounded-t-xl overflow-hidden">
                 {/* 背景渐变遮罩 */}
-                <div className="absolute inset-0 bg-gradient-to-b from-white via-white to-white/60 backdrop-blur-sm"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-card via-card to-card/60 backdrop-blur-sm"></div>
                 {/* 下方模糊边缘 */}
-                <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-b from-transparent to-white/40 blur-sm"></div>
+                <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-b from-transparent to-card/40 blur-sm"></div>
                 
                 <div className="relative flex justify-center pt-2 pb-2">
                   <button
                     onClick={() => setIsUserListExpanded(true)}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50/30 transition-all duration-200 backdrop-blur-sm shadow-sm hover:shadow-md transform hover:scale-105"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-accent/30 transition-all duration-200 backdrop-blur-sm shadow-sm hover:shadow-md transform hover:scale-105"
                     title="展开用户列表"
                     aria-label="展开用户列表"
                   >
@@ -245,8 +247,8 @@ export function XDataDemo() {
                 <div className="relative">
                   <button
                     onClick={() => setSelectedUserId('')}
-                    className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border bg-white transition-all shadow-sm ${
-                      selectedUserId === '' ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-white border-blue-200 scale-[1.02]' : 'border-transparent hover:ring-1 hover:ring-gray-300'
+                    className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border bg-card transition-all shadow-sm ${
+                      selectedUserId === '' ? 'ring-2 ring-primary ring-offset-1 ring-offset-background border-primary/20 scale-[1.02]' : 'border-transparent hover:ring-1 hover:ring-border'
                     }`}
                     title="全部用户"
                     aria-label="全部用户"
@@ -261,8 +263,8 @@ export function XDataDemo() {
                     <div key={user.user_id} className="relative">
                       <button
                         onClick={() => setSelectedUserId(user.user_id)}
-                        className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border bg-white transition-all shadow-sm ${
-                          selectedUserId === user.user_id ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-white border-blue-200 scale-[1.02]' : 'border-transparent hover:ring-1 hover:ring-gray-300'
+                        className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border bg-card transition-all shadow-sm ${
+                          selectedUserId === user.user_id ? 'ring-2 ring-primary ring-offset-1 ring-offset-background border-primary/20 scale-[1.02]' : 'border-transparent hover:ring-1 hover:ring-border'
                         }`}
                         title={user.user_name}
                         aria-label={user.user_name}
@@ -280,7 +282,7 @@ export function XDataDemo() {
                         />
                       </button>
                       {/* 最新推文数角标 - 在容器外部避免被圆形蒙版切掉 */}
-                      <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 px-1 sm:px-1.5 rounded-full bg-gray-900/80 text-white text-[9px] sm:text-[10px] leading-3.5 sm:leading-4 text-center backdrop-blur-sm shadow z-10 pointer-events-none">
+                      <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 min-w-[14px] sm:min-w-[16px] h-3.5 sm:h-4 px-1 sm:px-1.5 rounded-full bg-gray-700 text-gray-200 text-[9px] sm:text-[10px] leading-3.5 sm:leading-4 text-center backdrop-blur-sm shadow z-10 pointer-events-none">
                         {userStats[user.user_id] || 0}
                       </span>
                     </div>
@@ -292,14 +294,14 @@ export function XDataDemo() {
 
         {/* 移动端展开的用户列表 */}
         {isUserListExpanded && (
-          <div className="md:hidden fixed inset-0 z-50 bg-white">
+          <div className="md:hidden fixed inset-0 z-50 bg-background">
             <div className="flex flex-col h-full">
               {/* 头部 */}
-              <div className="flex items-center justify-between p-4 border-b bg-white">
-                <h2 className="text-lg font-semibold text-gray-900">选择用户</h2>
+              <div className="flex items-center justify-between p-4 border-b bg-card">
+                <h2 className="text-lg font-semibold text-foreground">选择用户</h2>
                 <button
                   onClick={() => setIsUserListExpanded(false)}
-                  className="w-8 h-8 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+                  className="w-8 h-8 bg-muted text-muted-foreground rounded-full flex items-center justify-center hover:bg-muted/80 transition-colors"
                 >
                   ✕
                 </button>
@@ -312,16 +314,16 @@ export function XDataDemo() {
                   onClick={() => setSelectedUserId('')}
                   className={`flex items-center p-3 rounded-lg cursor-pointer transition-all ${
                     selectedUserId === '' 
-                      ? 'bg-blue-50 border-2 border-blue-200' 
-                      : 'hover:bg-gray-50 border border-transparent'
+                      ? 'bg-accent border-2 border-primary/20' 
+                      : 'hover:bg-accent/50 border border-transparent'
                   }`}
                 >
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
                     ALL
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900">全部用户</div>
-                    <div className="text-sm text-gray-500">查看所有最新数据</div>
+                    <div className="font-medium text-foreground">全部用户</div>
+                    <div className="text-sm text-muted-foreground">查看所有数据</div>
                   </div>
                 </div>
 
@@ -332,8 +334,8 @@ export function XDataDemo() {
                     onClick={() => setSelectedUserId(user.user_id)}
                     className={`flex items-center p-3 rounded-lg cursor-pointer transition-all ${
                       selectedUserId === user.user_id 
-                        ? 'bg-blue-50 border-2 border-blue-200' 
-                        : 'hover:bg-gray-50 border border-transparent'
+                        ? 'bg-accent border-2 border-primary/20' 
+                        : 'hover:bg-accent/50 border border-transparent'
                     }`}
                   >
                     <div className="relative mr-3">
@@ -350,20 +352,20 @@ export function XDataDemo() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-gray-900 truncate">{user.user_name}</div>
-                      <div className="text-sm text-gray-500 truncate">@{user.screen_name}</div>
-                      <div className="text-xs text-gray-400">
+                      <div className="font-medium text-foreground truncate">{user.user_name}</div>
+                      <div className="text-sm text-muted-foreground dark:text-muted-foreground truncate">@{user.screen_name}</div>
+                      <div className="text-xs text-muted-foreground">
                         {userLatestPosts[user.user_id] ? 
-                          `最新: ${new Date(userLatestPosts[user.user_id]).toLocaleString('zh-CN')}` :
-                          new Date(user.updated_at).toLocaleString('zh-CN')
+                          `最新: ${formatRelativeTime(userLatestPosts[user.user_id])}` :
+                          formatRelativeTime(user.updated_at)
                         }
                       </div>
                     </div>
                     <div className="text-right ml-2">
-                      <div className="text-sm font-medium text-blue-600">
+                      <div className="text-sm font-medium text-blue-600 dark:text-blue-200">
                         {userStats[user.user_id] || 0}
                       </div>
-                      <div className="text-xs text-gray-400">今日</div>
+                      <div className="text-xs text-muted-foreground">今日</div>
                     </div>
                   </div>
                 ))}
@@ -375,11 +377,11 @@ export function XDataDemo() {
         {/* 左侧用户列表（桌面端） */}
         <div className="hidden md:block w-72 lg:w-80 flex-shrink-0">
           <div className="sticky top-20">
-            <Card className="bg-white shadow-sm py-4">
+            <Card className="bg-white dark:bg-gray-800 shadow-sm py-4">
               <div className="p-4 flex flex-col min-h-[400px] max-h-[calc(100vh-12rem)]">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-gray-900">用户列表</h2>
-                  <div className="text-sm text-gray-500">
+                  <h2 className="text-lg font-semibold text-foreground">用户列表</h2>
+                  <div className="text-sm text-muted-foreground">
                     {users.filter(u => !u.expire).length}/{users.length}
                   </div>
                 </div>
@@ -389,16 +391,16 @@ export function XDataDemo() {
                   onClick={() => setSelectedUserId('')}
                   className={`flex items-center p-3 rounded-lg cursor-pointer transition-all mb-2 ${
                     selectedUserId === '' 
-                      ? 'bg-blue-50 border-2 border-blue-200' 
-                      : 'hover:bg-gray-50 border border-transparent'
+                      ? 'bg-accent border-2 border-primary/20' 
+                      : 'hover:bg-accent/50 border border-transparent'
                   }`}
                 >
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
                     ALL
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900">全部用户</div>
-                    <div className="text-sm text-gray-500">查看所有最新数据</div>
+                    <div className="font-medium text-foreground">全部用户</div>
+                    <div className="text-sm text-muted-foreground dark:text-muted-foreground">查看所有最新数据</div>
                   </div>
                 </div>
                 
@@ -411,8 +413,8 @@ export function XDataDemo() {
                     onClick={() => setSelectedUserId(user.user_id)}
                     className={`flex items-center p-3 rounded-lg cursor-pointer transition-all ${
                       selectedUserId === user.user_id 
-                        ? 'bg-blue-50 border-2 border-blue-200' 
-                        : 'hover:bg-gray-50 border border-transparent'
+                        ? 'bg-accent border-2 border-primary/20' 
+                        : 'hover:bg-accent/50 border border-transparent'
                     }`}
                   >
                     <div className="relative mr-3">
@@ -429,20 +431,20 @@ export function XDataDemo() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-gray-900 truncate">{user.user_name}</div>
-                      <div className="text-sm text-gray-500 truncate">@{user.screen_name}</div>
-                      <div className="text-xs text-gray-400">
+                      <div className="font-medium text-foreground truncate">{user.user_name}</div>
+                      <div className="text-sm text-muted-foreground dark:text-muted-foreground truncate">@{user.screen_name}</div>
+                      <div className="text-xs text-muted-foreground dark:text-muted-foreground">
                         {userLatestPosts[user.user_id] ? 
-                          `最新: ${new Date(userLatestPosts[user.user_id]).toLocaleString('zh-CN')}` :
-                          new Date(user.updated_at).toLocaleString('zh-CN')
+                          `最新: ${formatRelativeTime(userLatestPosts[user.user_id])}` :
+                          formatRelativeTime(user.updated_at)
                         }
                       </div>
                     </div>
                     <div className="text-right ml-2">
-                      <div className="text-sm font-medium text-blue-600">
+                      <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
                         {userStats[user.user_id] || 0}
                       </div>
-                      <div className="text-xs text-gray-400">今日</div>
+                      <div className="text-xs text-muted-foreground">今日</div>
                     </div>
                   </div>
                 ))}
@@ -454,10 +456,10 @@ export function XDataDemo() {
 
         {/* 右侧数据展示 */}
         <div className={`flex-1 min-w-0 transition-all duration-300 ${isUserListExpanded ? 'md:block hidden' : 'block'}`}>
-          <Card className="bg-white shadow-sm w-full py-3 sm:py-4">
+          <Card className="bg-card shadow-sm w-full py-3 sm:py-4">
             <div className="p-3 sm:p-4">
               <div className="flex items-center justify-between mb-4 sm:mb-6 gap-2">
-                <h2 className="text-base sm:text-lg font-semibold text-gray-900 truncate flex-1 min-w-0">
+                <h2 className="text-base sm:text-lg font-semibold text-foreground truncate flex-1 min-w-0">
                   {selectedUserId ? 
                     `${users.find(u => u.user_id === selectedUserId)?.user_name || '用户'} 的数据 (${latestData.length})` : 
                     `最新 X 数据 (${latestData.length})`
@@ -466,11 +468,11 @@ export function XDataDemo() {
                 
                 {/* 重要性切换开关 */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-600 font-medium">只看重要</span>
+                  <span className="text-xs text-gray-600 dark:text-muted-foreground font-medium">只看重要</span>
                   <button
                     onClick={() => setOnlyImportant(!onlyImportant)}
-                    className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${
-                      onlyImportant ? 'bg-blue-500' : 'bg-gray-300'
+                    className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${
+                      onlyImportant ? 'bg-primary' : 'bg-muted'
                     }`}
                     title={onlyImportant ? '关闭重要筛选' : '开启重要筛选'}
                   >
@@ -485,7 +487,7 @@ export function XDataDemo() {
                 <button
                   onClick={() => fetchLatestData(true)}
                   disabled={loading}
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
+                  className="p-2 text-muted-foreground dark:text-muted-foreground hover:text-gray-700 dark:hover:text-gray-200  hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50 flex-shrink-0"
                   title="刷新数据"
                 >
                   <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -499,13 +501,13 @@ export function XDataDemo() {
                 {latestData.length === 0 && !loading ? (
                   /* 空状态 */
                   <div className="text-center py-12">
-                    <div className="text-gray-400 mb-2">
+                    <div className="text-muted-foreground mb-2">
                       <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2M4 13h2m0 0v5a2 2 0 002 2h4a2 2 0 002-2v-5m0 0V9a2 2 0 00-2-2H8a2 2 0 00-2 2v4.01" />
                       </svg>
                     </div>
                     <h3 className="text-sm font-medium text-gray-900 mb-1">暂无数据</h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {selectedUserId ? '该用户暂无X数据' : '当前没有X数据'}
                     </p>
                   </div>
@@ -553,7 +555,7 @@ export function XDataDemo() {
                           {loadingMore ? '加载中...' : '加载更多'}
                         </button>
                       ) : latestData.length > 0 ? (
-                        <span className="text-sm text-gray-500">没有更多了</span>
+                        <span className="text-sm text-muted-foreground">没有更多了</span>
                       ) : null}
                     </div>
                   </div>
@@ -577,5 +579,6 @@ export function XDataDemo() {
         )}
       </div>
       </div>
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { ExternalLink, Sparkles } from 'lucide-react';
 import { XData } from '@/db_lib/supabase';
 import { getProxiedImageUrl } from '@/db_lib/image-utils';
+import { formatRelativeTime } from '@/components/ui/time-utils';
 
 
 interface XUser {
@@ -42,13 +43,13 @@ function CollapsibleText({
   const displayText = expanded ? text : text.slice(0, limit);
   
   return (
-    <div className="text-gray-900 whitespace-pre-wrap break-words">
+    <div className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">
       {renderContent ? renderContent(displayText) : displayText}
       {isLong && !expanded && (
         <>
-          <span className="text-gray-500">...</span>
+          <span className="text-gray-500 dark:text-gray-400">...</span>
           <button
-            className="font-semibold text-blue-600 hover:text-blue-800 hover:underline text-sm ml-1"
+            className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline text-sm ml-1"
             onClick={(e) => {
               e.stopPropagation();
               setExpanded(true);
@@ -60,9 +61,9 @@ function CollapsibleText({
       )}
       {isLong && expanded && (
         <>
-          <span className="text-gray-500">  </span>
+          <span className="text-gray-500 dark:text-gray-400">  </span>
         <button
-          className="font-semibold text-blue-600 hover:text-blue-800 hover:underline text-sm ml-1"
+          className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline text-sm ml-1"
           onClick={(e) => {
             e.stopPropagation();
             setExpanded(false);
@@ -78,6 +79,7 @@ function CollapsibleText({
 
 export function TweetCard({ item, users = [] }: TweetCardProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isTouched, setIsTouched] = useState<boolean>(false);
   const isTweet = item.x_id.startsWith('tweet-');
   const isProfileConversation = item.x_id.startsWith('profile-conversation-');
   
@@ -104,29 +106,34 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     if (!aiResult || !aiResult.summary || aiResult.is_important === false) return null;
     
     return (
-      <div className="mb-3 bg-white p-3 rounded-xl">
-        <div className="flex items-start space-x-2">
-          <Sparkles className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm text-gray-800 mb-2">
-              <span className="font-semibold text-blue-700 mr-1">AI 解读：</span>
-              {aiResult.summary}
-            </p>
-            {aiResult.highlight_label && aiResult.highlight_label.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {aiResult.highlight_label.map((label: string, index: number) => (
-                  <span
-                    key={index}
-                    className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs"
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+      <div className="mb-3 bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+      {/* 内容主体 */}
+      <div className="flex items-start space-x-2">
+        <Sparkles className="w-4 h-4 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0 drop-shadow-sm" />
+        <div className="flex-1">
+          <p className="text-sm text-gray-800 dark:text-gray-200 mb-2">
+          <span className="font-semibold bg-gradient-to-r from-blue-500 dark:from-blue-400 to-indigo-600 dark:to-indigo-400 bg-clip-text text-transparent mr-1">
+            AI 解读：
+          </span>
+            {aiResult.summary}
+          </p>
+
+          {/* 高亮标签 */}
+          {aiResult.highlight_label && aiResult.highlight_label.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {aiResult.highlight_label.map((label: string, index: number) => (
+                <span
+                  key={index}
+                  className="bg-blue-100 dark:bg-blue-500/80 text-blue-700 dark:text-blue-200 px-2 py-0.5 rounded-full text-xs"
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
+    </div>
     );
   };
   
@@ -213,7 +220,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline font-medium"
           onClick={(e) => e.stopPropagation()} // 防止事件冒泡
         >
           {matchedText}
@@ -275,8 +282,8 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
       }
       // 添加分割线
       parts.push(
-        <div key={`sep-${i}`} className="border-t border-gray-200 my-3 pt-3">
-          <div className="text-xs text-gray-500 mb-2">
+        <div key={`sep-${i}`} className="border-t border-gray-200 dark:border-gray-700 my-3 pt-3">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
             {text.slice(pos).startsWith('RT @') ? '转推' : '引用'}
           </div>
         </div>
@@ -306,7 +313,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     const medias = data.medias as Record<string, string[]>;
     
     return (
-      <div className={`${isSubItem ? 'ml-4 pl-4 border-l-2 border-gray-200' : ''}`}>
+      <div className={`${isSubItem ? 'ml-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700' : ''}`}>
         {fullText && (
           <div className="mb-3">
             {renderTextWithSeparators(fullText)}
@@ -316,7 +323,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         {/* 链接 */}
         {urls && Object.keys(urls).length > 0 && (
           <div className="mb-3">
-            <div className="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full mb-2">
+            <div className="inline-flex items-center px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-xs rounded-full mb-2">
               链接
             </div>
             <div className="space-y-1">
@@ -341,7 +348,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
                           href={link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-start text-blue-600 hover:text-blue-800 text-sm hover:underline break-all w-full"
+                          className="flex items-start text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm hover:underline break-all w-full"
                           title={link} // 显示完整链接作为提示
                         >
                           <ExternalLink size={14} className="mr-1 mt-0.5 flex-shrink-0" />
@@ -358,7 +365,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         {/* 媒体 */}
         {medias && Object.keys(medias).length > 0 && (
           <div className="mb-3">
-            <div className="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full mb-2">
+            <div className="inline-flex items-center px-2 py-1 bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 text-xs rounded-full mb-2">
               媒体
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -410,32 +417,20 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
       }
     }
     const finalVal = createdAt ?? x.created_at;
-    const date = new Date(finalVal);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMinutes = Math.floor(diffMs / (60 * 1000));
-    const diffHours = Math.floor(diffMs / (60 * 60 * 1000));
-    const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-    
-    // 一天内显示相对时间
-    if (diffDays < 1) {
-      if (diffHours >= 1) {
-        return `${diffHours}小时前`;
-      }
-      if (diffMinutes >= 1) {
-        return `${diffMinutes}分钟前`;
-      }
-      return '刚刚';
-    }
-    
-    // 超过一天显示完整时间
-    return date.toLocaleString('zh-CN');
+    return formatRelativeTime(finalVal);
   };
 
 
   return (
     <div 
-      className={`p-3 sm:p-4 border rounded-lg transition-all w-full border-gray-200 hover:bg-gray-50 hover:border-blue-500 hover:ring-1 hover:ring-blue-500`}
+      className={`p-3 sm:p-4 border rounded-lg transition-all w-full ${
+        isTouched 
+          ? 'border-blue-500 ring-1 ring-blue-500 bg-gray-50 dark:bg-gray-800' 
+          : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-blue-500 hover:ring-1 hover:ring-blue-500'
+      }`}
+      onTouchStart={() => setIsTouched(true)}
+      onTouchEnd={() => setIsTouched(false)}
+      onTouchCancel={() => setIsTouched(false)}
     >
       {/* 头部信息 */}
       <div className="flex justify-between items-start mb-3">
@@ -459,13 +454,13 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
           
           <div className="min-w-0 flex-1">
             {/* 用户名和链接 */}
-            <div className="font-medium text-gray-900 text-sm sm:text-base truncate">
+            <div className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base truncate">
               {item.user_link ? (
                 <a
                   href={item.user_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-blue-600 hover:underline"
+                  className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline"
                 >
                   @{item.username || '未知用户'}
                 </a>
@@ -488,7 +483,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
               target="_blank"
               rel="noopener noreferrer"
               title="查看原文"
-              className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             >
               <ExternalLink size={16} />
             </a>
@@ -516,9 +511,9 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         
         {/* 如果不是推文或对话，显示原始数据预览 */}
         {!isTweet && !isProfileConversation && (
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="text-xs font-medium text-gray-700 mb-2">数据内容预览：</div>
-            <div className="text-xs text-gray-600 font-mono bg-white p-2 rounded border max-h-20 overflow-y-auto break-all">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+            <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">数据内容预览：</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 font-mono bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 max-h-20 overflow-y-auto break-all">
               {typeof item.data === 'object' ? 
                 JSON.stringify(item.data, null, 2).substring(0, 200) + (JSON.stringify(item.data).length > 200 ? '...' : '') :
                 String(item.data).substring(0, 200) + (String(item.data).length > 200 ? '...' : '')

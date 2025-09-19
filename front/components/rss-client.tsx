@@ -65,7 +65,7 @@ export default function RssPageClient() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-24 py-8">
+      <div className="min-h-screen bg-background pt-24 py-8">
         <div className="max-w-4xl mx-auto px-4">
           <Card className="border-red-200 bg-red-50">
             <CardContent className="pt-6">
@@ -87,42 +87,42 @@ export default function RssPageClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 py-8">
+    <div className="min-h-screen bg-background pt-24 py-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
-            <Rss className="w-8 h-8 text-orange-500" />
+          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
+            <Rss className="w-8 h-8 text-primary" />
             RSS 订阅中心
           </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             订阅我们的RSS源，实时获取最新的新闻资讯。支持按来源分类和全部文章订阅。
           </p>
         </div>
 
         {/* Latest Articles RSS */}
-        <Card className="mb-8 border-blue-200 bg-blue-50/50">
+        <Card className="mb-8 bg-card/50 border-primary/20">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-blue-800">
-              <Rss className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <Rss className="w-5 h-5 text-primary" />
               最新文章 RSS
             </CardTitle>
-            <CardDescription className="text-blue-600">
+            <CardDescription className="text-muted-foreground">
               获取所有来源的最新30篇文章
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-blue-200">
+            <div className="flex items-center justify-between bg-card rounded-lg p-4 border border-border">
               <div className="flex-1">
-                <p className="font-medium text-gray-900">全部最新文章</p>
-                <p className="text-sm text-gray-500 font-mono break-all">
+                <p className="font-medium text-foreground">全部最新文章</p>
+                <p className="text-sm text-muted-foreground font-mono break-all">
                   {typeof window !== 'undefined' ? window.location.origin : ''}{rssData?.latestRssUrl}
                 </p>
               </div>
               <div className="flex gap-2 ml-4">
                 <button
                   onClick={() => copyToClipboard(rssData?.latestRssUrl || '')}
-                  className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                  className="p-2 text-muted-foreground hover:text-primary hover:bg-accent rounded-md transition-colors"
                   title="复制RSS链接"
                 >
                   {copiedUrl === rssData?.latestRssUrl ? (
@@ -133,7 +133,7 @@ export default function RssPageClient() {
                 </button>
                 <button
                   onClick={() => openRSSFeed(rssData?.latestRssUrl || '')}
-                  className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                  className="p-2 text-muted-foreground hover:text-primary hover:bg-accent rounded-md transition-colors"
                   title="打开RSS源"
                 >
                   <ExternalLink className="w-4 h-4" />
@@ -165,17 +165,17 @@ export default function RssPageClient() {
               <div className="space-y-4">
                 {rssData?.sources.map((source, index) => (
                   <div key={source.source}>
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">{source.label}</h3>
-                        <p className="text-xs text-gray-400 font-mono break-all mt-1">
+                        <h3 className="font-medium text-foreground">{source.label}</h3>
+                        <p className="text-xs text-muted-foreground font-mono break-all mt-1">
                           {typeof window !== 'undefined' ? window.location.origin : ''}{source.rssUrl}
                         </p>
                       </div>
                       <div className="flex gap-2 ml-4">
                         <button
                           onClick={() => copyToClipboard(source.rssUrl)}
-                          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                          className="p-2 text-muted-foreground hover:text-primary hover:bg-accent rounded-md transition-colors"
                           title="复制RSS链接"
                         >
                           {copiedUrl === source.rssUrl ? (
@@ -186,7 +186,7 @@ export default function RssPageClient() {
                         </button>
                         <button
                           onClick={() => openRSSFeed(source.rssUrl)}
-                          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                          className="p-2 text-muted-foreground hover:text-primary hover:bg-accent rounded-md transition-colors"
                           title="打开RSS源"
                         >
                           <ExternalLink className="w-4 h-4" />
@@ -204,11 +204,11 @@ export default function RssPageClient() {
         </Card>
 
         {/* Usage Instructions */}
-        <Card className="mt-8 border-green-200 bg-green-50/50">
+        <Card className="mt-8 bg-accent/50 border-accent">
           <CardHeader>
-            <CardTitle className="text-green-800">如何使用RSS订阅</CardTitle>
+            <CardTitle className="text-foreground">如何使用RSS订阅</CardTitle>
           </CardHeader>
-          <CardContent className="text-green-700">
+          <CardContent className="text-muted-foreground">
             <div className="space-y-3 text-sm">
               <div>
                 <h4 className="font-medium">1. 复制RSS链接</h4>
@@ -230,7 +230,7 @@ export default function RssPageClient() {
         <div className="mt-8 text-center">
           <button
             onClick={() => window.location.href = '/'}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
             返回首页
           </button>
