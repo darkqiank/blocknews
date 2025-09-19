@@ -42,7 +42,10 @@ export function Navigation() {
                 <span className="text-white font-bold text-sm">BN</span>
               </div> */}
               <div className="w-8 h-8 flex items-center justify-center">
-                  <img src="/bn_touming.png" alt="BN" className="w-6 h-6" />
+                    {/* light 模式下显示 */}
+                    <img src="/bn_dark_1.png" alt="BN" className="w-7 h-7 dark:hidden" />
+                    {/* dark 模式下显示 */}
+                    <img src="/bn_white_1.png" alt="BN" className="w-7 h-7 hidden dark:block" />
               </div>
 
               <span className="font-bold text-xl text-gray-900 dark:text-white">Beno</span>
