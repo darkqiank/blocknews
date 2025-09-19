@@ -5,6 +5,6 @@ export default function Home() {
 }
 
 export const metadata = {
-  title: '见闻 News - Beno',
+  title: '见闻 News - BeNotify',
   description: '新闻见闻',
 };

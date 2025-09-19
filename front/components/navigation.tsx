@@ -48,7 +48,7 @@ export function Navigation() {
                     <img src="/bn_white_1.png" alt="BN" className="w-7 h-7 hidden dark:block" />
               </div>
 
-              <span className="font-bold text-xl text-gray-900 dark:text-white">Beno</span>
+              <span className="font-bold text-xl text-gray-900 dark:text-white">BeNotify</span>
             </Link>
           </div>
 

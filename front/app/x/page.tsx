@@ -9,6 +9,6 @@ export default function XPage() {
 }
 
 export const metadata = {
-  title: '见解 Insights - Beno',
+  title: '见解 Insights - BeNotify',
   description: 'View and manage X (Twitter) data and users',
 };
