@@ -2,6 +2,7 @@ import { ImageResponse } from 'next/og'
 import type { NextRequest } from 'next/server'
 import { getXDataByXId, getXUserById } from '@/db_lib/supabase'
 import { getProxiedImageUrl } from '@/db_lib/image-utils'
+import { formatRelativeTime } from '@/components/ui/time-utils'
 
 export const runtime = 'edge'
 
@@ -76,7 +77,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     }
 
     const username = item.username ? `@${item.username}` : '@用户'
-    const createdAt = new Date(item.created_at).toLocaleString('zh-CN')
+    // const createdAt = new Date(item.created_at).toLocaleString('zh-CN')
+    const createdAt = formatRelativeTime(item.created_at)
 
     // 文本处理，支持引用和转推的换行
     const processTextForSnapshot = (text: string): string => {
