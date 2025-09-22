@@ -50,9 +50,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       const textParts: string[] = []
       const allMedias: string[] = []
       
-      item.data.forEach((subItem: any, index: number) => {
-        const subData = subItem.data || {}
-        const subText = subData.full_text
+      item.data.forEach((subItem: Record<string, unknown>, index: number) => {
+        const subData = (subItem.data || {}) as Record<string, unknown>
+        const subText = subData.full_text as string
         if (subText) {
           if (index > 0) {
             textParts.push('------------------') // 使用短横线分隔
