@@ -27,3 +27,7 @@ readability-lxml
 
 pytz
 openai
+Pillow>=9.0.0
+
+# 高质量图像渲染 (可选，提供更好的图像质量)
+skia-python>=87.0
