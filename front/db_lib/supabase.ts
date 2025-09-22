@@ -261,6 +261,21 @@ export async function getXDataByUserId(userId: string, limit: number = 30): Prom
   return data || [];
 }
 
+export async function getXDataByXId(xId: string): Promise<XData | null> {
+  const { data, error } = await supabase
+    .from('t_x')
+    .select('*')
+    .eq('x_id', xId)
+    .single();
+
+  if (error) {
+    console.error(`Error fetching X data by x_id ${xId}:`, error);
+    return null;
+  }
+
+  return data;
+}
+
 export interface PagedXDataParams {
   userId?: string;
   itemType?: string;

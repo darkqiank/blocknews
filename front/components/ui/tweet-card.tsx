@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import Image from 'next/image';
-import { ExternalLink, Sparkles } from 'lucide-react';
+import { ExternalLink, Sparkles, Camera } from 'lucide-react';
 import { XData } from '@/db_lib/supabase';
 import { getProxiedImageUrl } from '@/db_lib/image-utils';
 import { formatRelativeTime } from '@/components/ui/time-utils';
@@ -165,6 +165,8 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
   };
   const originalUrl = getOriginalUrl();
   
+  
+
   // 查找对应的用户数据以获取头像信息
   const currentUser = users.find(user => user.user_id === item.user_id);
   
@@ -489,6 +491,19 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
             </a>
           </div>
         )}
+
+        <div className="flex items-center ml-2 flex-shrink-0">
+            <a
+              href={`/x/snapshot/${encodeURIComponent(item.x_id)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="快照"
+              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              data-no-snapshot
+            >
+              <Camera size={16} />
+            </a>
+        </div>
       </div>
 
       {/* 内容区域 */}
