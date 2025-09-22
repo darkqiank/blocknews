@@ -226,7 +226,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             display: 'flex',
             marginTop: 16
           }}>
-            blocknews • {x_id}{didTruncate ? ' • 文本已截断' : ''}
+            来自 @ByNotify • {x_id}{didTruncate ? ' • 文本已截断' : ''}
           </div>
         </div>
       ),
