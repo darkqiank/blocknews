@@ -7,6 +7,9 @@ import os
 from datetime import datetime
 import pytz
 from db_utils import get_all_x_users
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 with open('./headers.json', 'r', encoding='utf-8') as file:
