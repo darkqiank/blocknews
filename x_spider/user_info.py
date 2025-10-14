@@ -1,5 +1,8 @@
 from curl_cffi import requests
 import json
+from dotenv import load_dotenv
+
+load_dotenv()
 from db_utils import upsert_x_user
 
 
