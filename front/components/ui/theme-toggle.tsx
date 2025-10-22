@@ -49,7 +49,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-gray-100 dark:hover:bg-gray-800 transition-colors"
+      className="inline-flex items-center justify-center p-2 border border-transparent hover:border-foreground transition-all"
       title={getLabel()}
       aria-label={getLabel()}
     >

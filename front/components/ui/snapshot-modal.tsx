@@ -107,76 +107,76 @@ export function SnapshotModal({ isOpen, onClose, targetElement, tweetId }: Snaps
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 font-mono"
       onClick={onClose}
     >
       <div
-        className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden"
+        className="relative bg-background border-2 border-foreground max-w-2xl w-full max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 头部 */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            推文快照
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h3 className="text-xs font-bold uppercase tracking-wider">
+            [SNAPSHOT]
           </h3>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            className="p-2 border border-transparent hover:border-foreground transition-all"
             aria-label="关闭"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* 内容区域 */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
           {capturing ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-500 dark:text-gray-400">
+            <div className="flex flex-col items-center justify-center py-20 opacity-60">
               <Loader2 className="w-8 h-8 animate-spin mb-3" />
-              <p>正在生成截图...</p>
+              <p className="text-xs uppercase tracking-wider">[GENERATING...]</p>
             </div>
           ) : imageUrl ? (
             <div className="flex justify-center">
               <img
                 src={imageUrl}
                 alt="推文截图"
-                className="max-w-full h-auto rounded-lg shadow-lg border border-gray-200 dark:border-gray-700"
+                className="max-w-full h-auto border border-border"
               />
             </div>
           ) : (
-            <div className="flex items-center justify-center py-20 text-gray-500 dark:text-gray-400">
-              <p>截图生成失败</p>
+            <div className="flex items-center justify-center py-20 opacity-60">
+              <p className="text-xs uppercase tracking-wider">[FAILED]</p>
             </div>
           )}
         </div>
 
         {/* 底部操作按钮 */}
         {imageUrl && !capturing && (
-          <div className="flex items-center justify-center gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+          <div className="flex items-center justify-center gap-3 px-6 py-4 border-t border-border">
             <button
               onClick={copyImage}
               disabled={copied}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all disabled:opacity-50 bg-gray-700 dark:bg-gray-600 hover:bg-gray-800 dark:hover:bg-gray-700 text-white shadow-sm hover:shadow-md"
+              className="flex items-center gap-2 px-6 py-2.5 border border-foreground font-bold text-xs uppercase tracking-wider transition-all disabled:opacity-50 hover:bg-foreground hover:text-background"
             >
               {copied ? (
                 <>
-                  <Check size={18} />
-                  <span>已复制</span>
+                  <Check size={16} />
+                  <span>[COPIED]</span>
                 </>
               ) : (
                 <>
-                  <Copy size={18} />
-                  <span>复制图片</span>
+                  <Copy size={16} />
+                  <span>[COPY]</span>
                 </>
               )}
             </button>
 
             <button
               onClick={downloadImage}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md"
+              className="flex items-center gap-2 px-6 py-2.5 border border-foreground font-bold text-xs uppercase tracking-wider transition-all hover:bg-foreground hover:text-background"
             >
-              <Download size={18} />
-              <span>下载图片</span>
+              <Download size={16} />
+              <span>[DOWNLOAD]</span>
             </button>
           </div>
         )}

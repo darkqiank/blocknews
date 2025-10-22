@@ -1,0 +1,30 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="64"
+  height="64"
+  viewBox="0 0 64 64"
+>
+  <!-- 边框方块 -->
+  <rect
+    x="0.5"
+    y="0.5"
+    width="63"
+    height="63"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="4"
+  />
+  <!-- 居中文字 -->
+  <text
+    x="50%"
+    y="50%"
+    text-anchor="middle"
+    dominant-baseline="central"
+    font-family="monospace"
+    font-size="32"
+    font-weight="700"
+    fill="currentColor"
+  >
+    BN
+  </text>
+</svg>

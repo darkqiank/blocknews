@@ -72,7 +72,7 @@ const MobileFilterBar = ({
   ];
 
   return (
-    <div className="md:hidden w-full sticky top-16 z-30 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm mb-4">
+    <div className="md:hidden w-full sticky top-16 z-30 bg-background/95 backdrop-blur-sm border-b border-border mb-4 font-mono">
       <div className="px-4 py-3">
         <div className="flex items-center gap-3">
           <CustomSelect
@@ -87,7 +87,7 @@ const MobileFilterBar = ({
             disabled={loadingSources}
             className="flex-1"
           />
-          <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-full">
+          <div className="text-xs text-muted-foreground border border-border px-2 py-1">
             {newsCount} 条
           </div>
         </div>
@@ -111,7 +111,7 @@ const SourceSidebar = ({
   newsCount: number;
 }) => (
   <div className="w-64 flex-shrink-0">
-    <div className="bg-card rounded-lg shadow-sm p-4">
+    <div className="bg-card border border-border p-4 font-mono">
       {/* 标题区域 */}
       <div className="mb-4">
         <h1 className="text-xl font-bold text-foreground mb-1">实时新闻</h1>
@@ -378,7 +378,7 @@ export default function NewsList() {
                   <p className="text-sm text-muted-foreground mt-2">{error}</p>
                   <button 
                     onClick={() => fetchNews(selectedSource)}
-                    className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                    className="mt-4 px-4 py-2 border border-foreground hover:bg-foreground hover:text-background transition-all uppercase text-xs font-bold"
                   >
                     重试
                   </button>
@@ -432,7 +432,7 @@ export default function NewsList() {
         ) : (
           <div className="space-y-4">
             {news.map((item, index) => (
-              <Card key={index} className="group hover:shadow-md transition-all duration-200 border-l-4 border-l-transparent hover:border-l-blue-500">
+              <Card key={index} className="group hover:border-foreground transition-all duration-200 border border-border">
                 <CardHeader className="space-y-2 pb-3">
                   {/* 新闻标题 */}
                   <h2 className="text-lg font-medium leading-snug group-hover:text-primary transition-colors">
@@ -477,7 +477,7 @@ export default function NewsList() {
           <button
             onClick={loadMore}
             disabled={loadingMore}
-            className="px-4 sm:px-6 py-2 sm:py-3 bg-primary text-primary-foreground text-sm sm:text-base rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 mx-auto"
+            className="px-4 sm:px-6 py-2 sm:py-3 border border-foreground text-xs sm:text-sm uppercase font-bold hover:bg-foreground hover:text-background disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 mx-auto"
           >
                 {loadingMore && (
                   <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -499,7 +499,7 @@ export default function NewsList() {
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 z-40 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 focus:outline-none"
+          className="fixed bottom-6 right-6 z-40 p-3 border-2 border-foreground bg-background hover:bg-foreground hover:text-background focus:outline-none transition-all"
           aria-label="回到顶部"
           title="回到顶部"
         >

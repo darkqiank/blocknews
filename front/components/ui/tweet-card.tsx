@@ -44,33 +44,33 @@ function CollapsibleText({
   const displayText = expanded ? text : text.slice(0, limit);
   
   return (
-    <div className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap break-words">
+    <div className="whitespace-pre-wrap break-words font-mono text-xs">
       {renderContent ? renderContent(displayText) : displayText}
       {isLong && !expanded && (
         <>
-          <span className="text-gray-500 dark:text-gray-400">...</span>
+          <span className="opacity-50">...</span>
           <button
-            className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline text-sm ml-1"
+            className="font-bold underline ml-1"
             onClick={(e) => {
               e.stopPropagation();
               setExpanded(true);
             }}
           >
-            展开全文
+            [EXPAND]
           </button>
         </>
       )}
       {isLong && expanded && (
         <>
-          <span className="text-gray-500 dark:text-gray-400">  </span>
+          <span className="opacity-50">  </span>
         <button
-          className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline text-sm ml-1"
+          className="font-bold underline ml-1"
           onClick={(e) => {
             e.stopPropagation();
             setExpanded(false);
           }}
         >
-          <span>收起</span>
+          <span>[COLLAPSE]</span>
         </button>
         </>
       )}
@@ -109,14 +109,14 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     if (!aiResult || !aiResult.summary || aiResult.is_important === false) return null;
     
     return (
-      <div className="mb-3 bg-white dark:bg-gray-800 p-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="mb-3 border border-foreground p-3 bg-background font-mono">
       {/* 内容主体 */}
       <div className="flex items-start space-x-2">
-        <Sparkles className="w-4 h-4 text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0 drop-shadow-sm" />
+        <Sparkles className="w-4 h-4 mt-0.5 flex-shrink-0" />
         <div className="flex-1">
-          <p className="text-sm text-gray-800 dark:text-gray-200 mb-2">
-          <span className="font-semibold bg-gradient-to-r from-blue-500 dark:from-blue-400 to-indigo-600 dark:to-indigo-400 bg-clip-text text-transparent mr-1">
-            AI 解读：
+          <p className="text-xs mb-2">
+          <span className="font-bold mr-1">
+            [AI解读]:
           </span>
             {aiResult.summary}
           </p>
@@ -127,7 +127,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
               {aiResult.highlight_label.map((label: string, index: number) => (
                 <span
                   key={index}
-                  className="bg-blue-100 dark:bg-blue-500/80 text-blue-700 dark:text-blue-200 px-2 py-0.5 rounded-full text-xs"
+                  className="border border-foreground px-2 py-0.5 text-[10px] uppercase"
                 >
                   {label}
                 </span>
@@ -225,7 +225,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline font-medium"
+          className="underline font-bold"
           onClick={(e) => e.stopPropagation()} // 防止事件冒泡
         >
           {matchedText}
@@ -287,9 +287,9 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
       }
       // 添加分割线
       parts.push(
-        <div key={`sep-${i}`} className="border-t border-gray-200 dark:border-gray-700 my-3 pt-3">
-          <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-            {text.slice(pos).startsWith('RT @') ? '转推' : '引用'}
+        <div key={`sep-${i}`} className="border-t border-border my-3 pt-3">
+          <div className="text-[10px] opacity-60 mb-2 uppercase">
+            {text.slice(pos).startsWith('RT @') ? '[RETWEET]' : '[QUOTE]'}
           </div>
         </div>
       );
@@ -318,7 +318,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     const medias = data.medias as Record<string, string[]>;
     
     return (
-      <div className={`${isSubItem ? 'ml-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700' : ''}`}>
+      <div className={`${isSubItem ? 'ml-4 pl-4 border-l border-border' : ''}`}>
         {fullText && (
           <div className="mb-3">
             {renderTextWithSeparators(fullText)}
@@ -328,8 +328,8 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         {/* 链接 */}
         {urls && Object.keys(urls).length > 0 && (
           <div className="mb-3">
-            <div className="inline-flex items-center px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 text-xs rounded-full mb-2">
-              链接
+            <div className="inline-flex items-center px-2 py-1 border border-foreground text-[10px] uppercase mb-2">
+              [LINKS]
             </div>
             <div className="space-y-1">
               {Object.entries(urls).map(([, links]) =>
@@ -353,10 +353,10 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
                           href={link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-start text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm hover:underline break-all w-full"
+                          className="flex items-start text-[11px] underline break-all w-full"
                           title={link} // 显示完整链接作为提示
                         >
-                          <ExternalLink size={14} className="mr-1 mt-0.5 flex-shrink-0" />
+                          <ExternalLink size={12} className="mr-1 mt-0.5 flex-shrink-0" />
                           <span className="break-all">{displayText}</span>
                         </a>
                       </div>
@@ -370,8 +370,8 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         {/* 媒体 */}
         {medias && Object.keys(medias).length > 0 && (
           <div className="mb-3">
-            <div className="inline-flex items-center px-2 py-1 bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 text-xs rounded-full mb-2">
-              媒体
+            <div className="inline-flex items-center px-2 py-1 border border-foreground text-[10px] uppercase mb-2">
+              [MEDIA]
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {Object.entries(medias).map(([, mediaLinks]) =>
@@ -382,7 +382,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
                       alt="媒体内容"
                       width={200}
                       height={96}
-                      className="w-full h-24 object-cover rounded-lg border cursor-zoom-in"
+                      className="w-full h-24 object-cover border border-border cursor-zoom-in"
                       onClick={() => setPreviewImage(media)}
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).src = '/placeholder-image.png';
@@ -430,17 +430,17 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
     <>
     <div 
       ref={cardRef}
-      className={`p-3 sm:p-4 border rounded-lg transition-all w-full ${
+      className={`p-3 sm:p-4 border border-border transition-all w-full font-mono hover:border-foreground ${
         isTouched 
-          ? 'border-blue-500 ring-1 ring-blue-500 bg-gray-50 dark:bg-gray-800' 
-          : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-blue-500 hover:ring-1 hover:ring-blue-500'
+          ? 'border-foreground bg-muted' 
+          : ''
       }`}
       onTouchStart={() => setIsTouched(true)}
       onTouchEnd={() => setIsTouched(false)}
       onTouchCancel={() => setIsTouched(false)}
     >
       {/* 头部信息 */}
-      <div className="flex justify-between items-start mb-3">
+      <div className="flex justify-between items-start mb-3 pb-3 border-b border-border">
         <div className="flex items-center space-x-3 min-w-0 flex-1">
           {/* 用户头像 */}
           {item.user_id && (
@@ -449,11 +449,11 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
               alt={currentUser?.user_name || item.username || '用户'}
               width={40}
               height={40}
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 border flex-shrink-0"
+              className="w-8 h-8 sm:w-10 sm:h-10 border border-border flex-shrink-0"
               onError={(e) => {
                 // 使用与用户列表相同的错误处理逻辑
                 const userName = currentUser?.user_name || item.username || '用户';
-                (e.currentTarget as HTMLImageElement).src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23e5e7eb"/><text x="20" y="25" text-anchor="middle" fill="%236b7280" font-size="12">${userName.charAt(0).toUpperCase()}</text></svg>`;
+                (e.currentTarget as HTMLImageElement).src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect width="40" height="40" fill="%23000000"/><text x="20" y="25" text-anchor="middle" fill="%23ffffff" font-size="12" font-family="monospace">${userName.charAt(0).toUpperCase()}</text></svg>`;
               }}
               unoptimized
             />
@@ -461,22 +461,22 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
           
           <div className="min-w-0 flex-1">
             {/* 用户名和链接 */}
-            <div className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base truncate">
+            <div className="font-bold text-xs sm:text-sm truncate uppercase">
               {item.user_link ? (
                 <a
                   href={item.user_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline"
+                  className="underline"
                 >
-                  @{item.username || '未知用户'}
+                  @{item.username || 'UNKNOWN'}
                 </a>
               ) : (
-                `@${item.username || '未知用户'}`
+                `@${item.username || 'UNKNOWN'}`
               )}
             </div>
             {/* 时间显示在用户名下方 */}
-            <div className="text-xs text-gray-400 mt-1">
+            <div className="text-[10px] opacity-60 mt-1 uppercase">
               {getDisplayCreatedAt(item)}
             </div>
           </div>
@@ -490,9 +490,9 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
               target="_blank"
               rel="noopener noreferrer"
               title="查看原文"
-              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              className="p-1 border border-transparent hover:border-foreground"
             >
-              <ExternalLink size={16} />
+              <ExternalLink size={14} />
             </a>
           </div>
         )}
@@ -504,16 +504,16 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
                 setShowSnapshotModal(true);
               }}
               title="截图"
-              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              className="p-1 border border-transparent hover:border-foreground"
               data-no-snapshot
             >
-              <Camera size={16} />
+              <Camera size={14} />
             </button>
         </div>
       </div>
 
       {/* 内容区域 */}
-      <div className="border-t pt-3">
+      <div className="">
         {/* AI分析结果 - 放在正文开头 */}
         {renderAIAnalysis()}
         
@@ -523,7 +523,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
           <div className="space-y-4">
             {item.data.map((subItem: Record<string, unknown>, index: number) => (
               <div key={(subItem.x_id as string) || index}>
-                {index > 0 && <div className="border-t pt-3 mt-3" />}
+                {index > 0 && <div className="border-t border-border pt-3 mt-3" />}
                 {renderTweetContent(subItem.data as Record<string, unknown>, true)}
               </div>
             ))}
@@ -532,9 +532,9 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         
         {/* 如果不是推文或对话，显示原始数据预览 */}
         {!isTweet && !isProfileConversation && (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-            <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">数据内容预览：</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 font-mono bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700 max-h-20 overflow-y-auto break-all">
+          <div className="border border-border p-3">
+            <div className="text-[10px] font-bold mb-2 uppercase">[DATA_PREVIEW]:</div>
+            <div className="text-[11px] opacity-80 border border-border p-2 max-h-20 overflow-y-auto break-all">
               {typeof item.data === 'object' ? 
                 JSON.stringify(item.data, null, 2).substring(0, 200) + (JSON.stringify(item.data).length > 200 ? '...' : '') :
                 String(item.data).substring(0, 200) + (String(item.data).length > 200 ? '...' : '')
@@ -547,7 +547,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
       {/* 图片预览遮罩 */}
       {previewImage && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={() => setPreviewImage(null)}
         >
           <Image
@@ -555,7 +555,7 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
             alt="预览"
             width={800}
             height={600}
-            className="max-h-[90vh] max-w-[90vw] rounded shadow-xl cursor-zoom-out object-contain"
+            className="max-h-[90vh] max-w-[90vw] border border-white cursor-zoom-out object-contain"
             onClick={() => setPreviewImage(null)}
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).src = '/placeholder-image.png';

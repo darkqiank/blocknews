@@ -48,11 +48,11 @@ export function CustomSelect({
   }, [isOpen]);
 
   return (
-    <div className={`relative ${className}`} data-custom-select>
+    <div className={`relative ${className} font-mono`} data-custom-select>
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
-        className="w-full bg-card border border-border rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-card border border-border px-3 py-2 text-xs uppercase tracking-wider focus:outline-none focus:border-foreground transition-all flex items-center justify-between disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <div className="flex items-center gap-2">
           {selectedOption ? (
@@ -61,14 +61,14 @@ export function CustomSelect({
               <span>{selectedOption.label}</span>
             </>
           ) : (
-            <span className="text-muted-foreground">{placeholder}</span>
+            <span className="opacity-60">{placeholder}</span>
           )}
         </div>
-        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       
       {isOpen && (
-        <div className={`absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto ${dropdownClassName}`}>
+        <div className={`absolute top-full left-0 right-0 mt-1 bg-card border border-border z-50 max-h-60 overflow-y-auto ${dropdownClassName}`}>
           {options.map((option, index) => (
             <button
               key={option.value}
@@ -76,9 +76,9 @@ export function CustomSelect({
                 onChange(option.value === '' ? null : option.value);
                 setIsOpen(false);
               }}
-              className={`w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 ${
+              className={`w-full px-3 py-2 text-left text-xs uppercase tracking-wider hover:border-foreground flex items-center gap-2 transition-all ${
                 index < options.length - 1 ? 'border-b border-border' : ''
-              } ${selectedOption?.value === option.value ? 'bg-muted text-muted-foreground' : ''}`}
+              } ${selectedOption?.value === option.value ? 'bg-foreground text-background border-foreground' : 'border-transparent'}`}
             >
               {option.icon}
               <span>{option.label}</span>
