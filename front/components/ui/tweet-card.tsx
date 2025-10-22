@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { ExternalLink, Sparkles, Camera } from 'lucide-react';
 import { XData } from '@/db_lib/supabase';
 import { getProxiedImageUrl } from '@/db_lib/image-utils';
 import { formatRelativeTime } from '@/components/ui/time-utils';
+import { SnapshotModal } from '@/components/ui/snapshot-modal';
 
 
 interface XUser {
@@ -80,6 +81,8 @@ function CollapsibleText({
 export function TweetCard({ item, users = [] }: TweetCardProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isTouched, setIsTouched] = useState<boolean>(false);
+  const [showSnapshotModal, setShowSnapshotModal] = useState<boolean>(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const isTweet = item.x_id.startsWith('tweet-');
   const isProfileConversation = item.x_id.startsWith('profile-conversation-');
   
@@ -424,7 +427,9 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
 
 
   return (
+    <>
     <div 
+      ref={cardRef}
       className={`p-3 sm:p-4 border rounded-lg transition-all w-full ${
         isTouched 
           ? 'border-blue-500 ring-1 ring-blue-500 bg-gray-50 dark:bg-gray-800' 
@@ -493,16 +498,17 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         )}
 
         <div className="flex items-center ml-2 flex-shrink-0">
-            <a
-              href={`/x/snapshot/${encodeURIComponent(item.x_id)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="快照"
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSnapshotModal(true);
+              }}
+              title="截图"
               className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               data-no-snapshot
             >
               <Camera size={16} />
-            </a>
+            </button>
         </div>
       </div>
 
@@ -559,5 +565,14 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
         </div>
       )}
     </div>
+
+    {/* 截图模态框 */}
+    <SnapshotModal
+      isOpen={showSnapshotModal}
+      onClose={() => setShowSnapshotModal(false)}
+      targetElement={cardRef.current}
+      tweetId={item.x_id}
+    />
+    </>
   );
 }
