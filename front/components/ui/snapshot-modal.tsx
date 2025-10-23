@@ -46,9 +46,13 @@ export function SnapshotModal({ isOpen, onClose, targetElement, tweetId }: Snaps
     try {
       setCapturing(true);
 
+      // 检测当前主题
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      const backgroundColor = isDarkMode ? '#000000' : '#ffffff';
+
       // 使用 snapdom 捕获元素
       const result = await snapdom(targetElement, {
-        backgroundColor: '#ffffff',
+        backgroundColor,
         scale: 2,
       });
 
