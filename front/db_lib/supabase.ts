@@ -229,6 +229,21 @@ export async function getXUserById(userId: string): Promise<XUser | null> {
   return data;
 }
 
+export async function getXUserByUsername(username: string): Promise<XUser | null> {
+  const { data, error } = await supabase
+    .from('t_x_users')
+    .select('*')
+    .eq('screen_name', username)
+    .single();
+
+  if (error) {
+    console.error(`Error fetching X user by username ${username}:`, error);
+    return null;
+  }
+
+  return data;
+}
+
 // X data helper functions
 export async function getLatestXData(limit: number = 30): Promise<XData[]> {
   const { data, error } = await supabase
@@ -255,6 +270,22 @@ export async function getXDataByUserId(userId: string, limit: number = 30): Prom
 
   if (error) {
     console.error(`Error fetching X data for user ${userId}:`, error);
+    return [];
+  }
+
+  return data || [];
+}
+
+export async function getXDataByUsername(username: string, limit: number = 30): Promise<XData[]> {
+  const { data, error } = await supabase
+    .from('t_x')
+    .select('*')
+    .eq('username', username)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error(`Error fetching X data for username ${username}:`, error);
     return [];
   }
 

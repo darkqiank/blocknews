@@ -3,11 +3,12 @@
 import { useEffect, useState, useRef } from 'react';
 import type { ReactNode } from 'react';
 import Image from 'next/image';
-import { ExternalLink, Sparkles, Camera } from 'lucide-react';
+import { Sparkles, Camera } from 'lucide-react';
 import { XData } from '@/db_lib/supabase';
 import { getProxiedImageUrl } from '@/db_lib/image-utils';
 import { formatRelativeTime } from '@/components/ui/time-utils';
 import { SnapshotModal } from '@/components/ui/snapshot-modal';
+import { XIcon } from '@/components/ui/icons';
 
 
 interface XUser {
@@ -356,7 +357,9 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
                           className="flex items-start text-[11px] underline break-all w-full"
                           title={link} // 显示完整链接作为提示
                         >
-                          <ExternalLink size={12} className="mr-1 mt-0.5 flex-shrink-0" />
+                          <svg className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
+                          </svg>
                           <span className="break-all">{displayText}</span>
                         </a>
                       </div>
@@ -482,33 +485,33 @@ export function TweetCard({ item, users = [] }: TweetCardProps) {
           </div>
         </div>
         
-        {/* 原文链接图标 */}
-        {originalUrl && (
-          <div className="flex items-center ml-2 flex-shrink-0">
+        {/* 右侧操作按钮组 */}
+        <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+          {/* 原文链接 - 使用 X 图标 */}
+          {originalUrl && (
             <a
               href={originalUrl}
               target="_blank"
               rel="noopener noreferrer"
-              title="查看原文"
+              title="查看 X 原文"
               className="p-1 border border-transparent hover:border-foreground"
             >
-              <ExternalLink size={14} />
+              <XIcon className="w-[14px] h-[14px]" />
             </a>
-          </div>
-        )}
-
-        <div className="flex items-center ml-2 flex-shrink-0">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowSnapshotModal(true);
-              }}
-              title="截图"
-              className="p-1 border border-transparent hover:border-foreground"
-              data-no-snapshot
-            >
-              <Camera size={14} />
-            </button>
+          )}
+          
+          {/* 截图按钮 */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowSnapshotModal(true);
+            }}
+            title="截图"
+            className="p-1 border border-transparent hover:border-foreground"
+            data-no-snapshot
+          >
+            <Camera size={14} />
+          </button>
         </div>
       </div>
 

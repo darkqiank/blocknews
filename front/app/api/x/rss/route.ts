@@ -1,26 +1,29 @@
 import { NextResponse } from 'next/server';
-import { getPagedArticles } from '@/db_lib/supabase';
-import { generateLatestArticlesFeed, generateRSSXML } from '@/db_lib/rss-generator';
+import { getPagedXData } from '@/db_lib/supabase';
+import { generateAllXFeed, generateRSSXML } from '@/db_lib/rss-generator';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const before = searchParams.get('before') || undefined;
-    const beforeIdParam = searchParams.get('before_id');
     const limitParam = searchParams.get('limit');
-    const limit = limitParam ? Math.max(1, Math.min(50, parseInt(limitParam, 10))) : 30;
+    const limit = limitParam ? Math.max(1, Math.min(100, parseInt(limitParam, 10))) : 50;
+    const onlyImportant = searchParams.get('onlyImportant') === 'true';
 
-    const beforeId = beforeIdParam ? parseInt(beforeIdParam, 10) : undefined;
-    const { items: articles } = await getPagedArticles({ limit, before, beforeId });
+    // Get all X data with optional important filter
+    const result = await getPagedXData({ 
+      limit, 
+      onlyImportant 
+    });
+    const xDataList = result.items;
     
-    if (articles.length === 0) {
+    if (xDataList.length === 0) {
       return new NextResponse(
-        '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>No Articles</title><description>No articles found</description></channel></rss>',
+        '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>No Posts</title><description>No posts found</description></channel></rss>',
         {
           status: 200,
           headers: {
             'Content-Type': 'application/rss+xml; charset=utf-8',
-            'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+            'Cache-Control': 'public, max-age=600', // Cache for 10 minutes
           },
         }
       );
@@ -31,18 +34,18 @@ export async function GET(request: Request) {
     const baseUrl = `${url.protocol}//${url.host}`;
     
     // Generate RSS feed
-    const feed = generateLatestArticlesFeed(articles, baseUrl);
+    const feed = generateAllXFeed(xDataList, baseUrl);
     const rssXML = generateRSSXML(feed);
 
     return new NextResponse(rssXML, {
       status: 200,
       headers: {
         'Content-Type': 'application/rss+xml; charset=utf-8',
-        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+        'Cache-Control': 'public, max-age=600', // Cache for 10 minutes
       },
     });
   } catch (error) {
-    console.error('Error generating latest articles RSS:', error);
+    console.error('Error generating all X RSS:', error);
     
     return new NextResponse(
       '<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Error</title><description>Error generating RSS feed</description></channel></rss>',
@@ -55,3 +58,4 @@ export async function GET(request: Request) {
     );
   }
 }
+

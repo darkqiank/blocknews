@@ -1,41 +1,51 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import LoadingSpinner from '@/components/ui/loading-spinner';
-import { Separator } from '@/components/ui/separator';
-import { ExternalLink, Rss, Copy, Check } from 'lucide-react';
+import { CustomSelect, type SelectOption } from '@/components/ui/custom-select';
 
-interface SourceData {
-  source: string;
-  label: string;
-  rssUrl: string;
+interface XUserData {
+  user_id: string;
+  user_name: string;
+  screen_name: string;
+  user_link: string;
+  avatar?: string;
+  expire: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-interface RSSSourcesResponse {
-  sources: 
-  SourceData[];
-  latestRssUrl: string;
+interface XUsersResponse {
+  success: boolean;
+  data: XUserData[];
+  total: number;
 }
 
 export default function RssPageClient() {
-  const [rssData, setRssData] = useState<RSSSourcesResponse | null>(null);
+  const [users, setUsers] = useState<XUserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<string>('');
+  const [onlyImportant, setOnlyImportant] = useState(false);
+  const [limit, setLimit] = useState(30);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    fetchRSSData();
+    fetchXUsers();
   }, []);
 
-  const fetchRSSData = async () => {
+  const fetchXUsers = async () => {
     try {
-      const response = await fetch('/api/rss/sources');
+      const response = await fetch('/api/x/users');
       if (!response.ok) {
-        throw new Error('Failed to fetch RSS sources');
+        throw new Error('Failed to fetch X users');
       }
-      const data = await response.json();
-      setRssData(data);
+      const data: XUsersResponse = await response.json();
+      if (data.success) {
+        setUsers(data.data);
+      } else {
+        throw new Error('Failed to fetch X users');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -43,197 +53,139 @@ export default function RssPageClient() {
     }
   };
 
-  const copyToClipboard = async (url: string) => {
+  const buildRSSUrl = () => {
+    const baseUrl = selectedUser 
+      ? `/api/x/rss/${selectedUser}` 
+      : '/api/x/rss';
+    
+    const params = new URLSearchParams();
+    if (limit !== 30) {
+      params.set('limit', limit.toString());
+    }
+    if (onlyImportant) {
+      params.set('onlyImportant', 'true');
+    }
+    
+    const queryString = params.toString();
+    return queryString ? `${baseUrl}?${queryString}` : baseUrl;
+  };
+
+  const copyToClipboard = async () => {
     try {
-      const fullUrl = `${window.location.origin}${url}`;
+      const rssUrl = buildRSSUrl();
+      const fullUrl = `${window.location.origin}${rssUrl}`;
       await navigator.clipboard.writeText(fullUrl);
-      setCopiedUrl(url);
-      setTimeout(() => setCopiedUrl(null), 2000);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy URL:', err);
     }
   };
 
-  const openRSSFeed = (url: string) => {
-    const fullUrl = `${window.location.origin}${url}`;
-    window.open(fullUrl, '_blank');
-  };
-
   if (loading) {
-    return <LoadingSpinner fullPage message="加载RSS源信息..." />;
+    return <LoadingSpinner fullPage message="加载中..." />;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background pt-20 py-8 font-mono">
-        <div className="max-w-4xl mx-auto px-4">
-          <Card className="border-foreground bg-background">
-            <CardContent className="pt-6">
-              <div className="text-center text-red-600">
-                <p className="font-medium">加载失败</p>
-                <p className="text-sm mt-1">{error}</p>
-                <button
-                  onClick={fetchRSSData}
-                  className="mt-4 px-4 py-2 border border-foreground hover:bg-foreground hover:text-background transition-all uppercase text-xs font-bold"
-                >
-                  重试
-                </button>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="min-h-screen bg-background flex items-center justify-center font-mono">
+        <div className="text-center text-xs">
+          <p className="text-red-500 mb-4">ERROR: {error}</p>
+          <button
+            onClick={fetchXUsers}
+            className="text-foreground hover:text-muted-foreground transition-colors"
+          >
+            [重试]
+          </button>
         </div>
       </div>
     );
   }
 
+  const currentUrl = buildRSSUrl();
+  const fullUrl = typeof window !== 'undefined' ? `${window.location.origin}${currentUrl}` : currentUrl;
+
+  // 用户选项
+  const userOptions: SelectOption[] = [
+    { value: '', label: 'all' },
+    ...users.map(user => ({
+      value: user.screen_name,
+      label: user.screen_name
+    }))
+  ];
+
+  // 数量选项
+  const limitOptions: SelectOption[] = [
+    { value: '10', label: '10' },
+    { value: '20', label: '20' },
+    { value: '30', label: '30' },
+    { value: '40', label: '40' },
+    { value: '50', label: '50' }
+  ];
+
   return (
-    <div className="min-h-screen bg-background pt-24 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
-            <Rss className="w-8 h-8 text-primary" />
-            RSS 订阅中心
+    <div className="min-h-screen bg-background flex items-center justify-center py-8 px-4 font-mono">
+      {/* 黄金分割位置：约 38.2% */}
+      <div className="w-full max-w-2xl" style={{ marginTop: '-8vh' }}>
+        {/* 外框和标题 */}
+        <div className="border border-border p-6 sm:p-8">
+          {/* 标题 */}
+          <h1 className="text-lg sm:text-xl font-bold mb-6 tracking-tight">
+            Just subscribe it!
           </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            订阅我们的RSS源，实时获取最新的新闻资讯。支持按来源分类和全部文章订阅。
-          </p>
-        </div>
 
-        {/* Latest Articles RSS */}
-        <Card className="mb-8 bg-card border-border">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <Rss className="w-5 h-5 text-primary" />
-              最新文章 RSS
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              获取所有来源的最新30篇文章
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between bg-card p-4 border border-border">
-              <div className="flex-1">
-                <p className="font-medium text-foreground">全部最新文章</p>
-                <p className="text-sm text-muted-foreground font-mono break-all">
-                  {typeof window !== 'undefined' ? window.location.origin : ''}{rssData?.latestRssUrl}
-                </p>
+          <div className="space-y-4 text-xs">
+            {/* URL 显示 + Copy 按钮 */}
+            <div className="flex items-center gap-2">
+              <div className="flex-1 p-3 bg-muted/50 border border-border overflow-hidden whitespace-nowrap text-ellipsis">
+                {fullUrl}
               </div>
-              <div className="flex gap-2 ml-4">
-                <button
-                  onClick={() => copyToClipboard(rssData?.latestRssUrl || '')}
-                  className="p-2 border border-transparent hover:border-foreground transition-all"
-                  title="复制RSS链接"
-                >
-                  {copiedUrl === rssData?.latestRssUrl ? (
-                    <Check className="w-4 h-4 text-green-600" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </button>
-                <button
-                  onClick={() => openRSSFeed(rssData?.latestRssUrl || '')}
-                  className="p-2 border border-transparent hover:border-foreground transition-all"
-                  title="打开RSS源"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                onClick={copyToClipboard}
+                className={`px-3 py-3 border transition-all whitespace-nowrap ${
+                  copied
+                    ? 'border-foreground bg-foreground text-background'
+                    : 'border-border text-foreground hover:border-foreground'
+                }`}
+              >
+                {copied ? '[✓]' : '[复制]'}
+              </button>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Source-specific RSS */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Rss className="w-5 h-5" />
-              按来源分类的RSS
-            </CardTitle>
-            <CardDescription>
-              根据新闻来源订阅特定的RSS源，每个来源提供最新30篇文章
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {rssData?.sources.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Rss className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>暂无可用的RSS源</p>
-                <p className="text-sm mt-1">请先运行爬虫程序收集文章</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {rssData?.sources.map((source, index) => (
-                  <div key={source.source}>
-                    <div className="flex items-center justify-between p-4 border border-border hover:border-foreground transition-all">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-foreground">{source.label}</h3>
-                        <p className="text-xs text-muted-foreground font-mono break-all mt-1">
-                          {typeof window !== 'undefined' ? window.location.origin : ''}{source.rssUrl}
-                        </p>
-                      </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => copyToClipboard(source.rssUrl)}
-                          className="p-2 border border-transparent hover:border-foreground transition-all"
-                          title="复制RSS链接"
-                        >
-                          {copiedUrl === source.rssUrl ? (
-                            <Check className="w-4 h-4 text-green-600" />
-                          ) : (
-                            <Copy className="w-4 h-4" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => openRSSFeed(source.rssUrl)}
-                          className="p-2 border border-transparent hover:border-foreground transition-all"
-                          title="打开RSS源"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                    {index < (rssData?.sources.length || 0) - 1 && (
-                      <Separator className="my-2" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            {/* 控件行 - 大屏一行，小屏多行 */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+              {/* 重要筛选 */}
+              <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  checked={onlyImportant}
+                  onChange={(e) => setOnlyImportant(e.target.checked)}
+                  className="appearance-none w-3 h-3 border border-foreground checked:bg-foreground cursor-pointer"
+                />
+                <span className={onlyImportant ? 'text-foreground' : 'text-muted-foreground'}>
+                  只看重要
+                </span>
+              </label>
 
-        {/* Usage Instructions */}
-        <Card className="mt-8 bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-foreground">如何使用RSS订阅</CardTitle>
-          </CardHeader>
-          <CardContent className="text-muted-foreground">
-            <div className="space-y-3 text-sm">
-              <div>
-                <h4 className="font-medium">1. 复制RSS链接</h4>
-                <p>点击复制按钮获取RSS源的完整URL</p>
-              </div>
-              <div>
-                <h4 className="font-medium">2. 添加到RSS阅读器</h4>
-                <p>将链接添加到您喜欢的RSS阅读器中，如Feedly、Inoreader、NetNewsWire等</p>
-              </div>
-              <div>
-                <h4 className="font-medium">3. 实时更新</h4>
-                <p>RSS源每小时更新一次，确保您获得最新的新闻资讯</p>
-              </div>
+              {/* 用户选择 */}
+              <CustomSelect
+                options={userOptions}
+                value={selectedUser}
+                onChange={(value) => setSelectedUser(value || '')}
+                placeholder="选择用户"
+                className="w-full sm:min-w-[160px]"
+              />
+
+              {/* 数量选择 */}
+              <CustomSelect
+                options={limitOptions}
+                value={limit.toString()}
+                onChange={(value) => setLimit(parseInt(value || '30'))}
+                placeholder="数量"
+                className="w-full sm:w-[100px]"
+              />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Navigation */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={() => window.location.href = '/'}
-            className="inline-flex items-center gap-2 px-6 py-3 border border-foreground hover:bg-foreground hover:text-background transition-all uppercase text-xs font-bold"
-          >
-            返回首页
-          </button>
+          </div>
         </div>
       </div>
     </div>

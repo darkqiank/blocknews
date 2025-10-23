@@ -14,16 +14,10 @@ const navigationItems = [
     description: '观点见解'
   },
   {
-    name: '[NEWS]',
-    href: '/news',
-    icon: Globe,
-    description: '新闻见闻'
-  },
-  {
     name: '[RSS]',
     href: '/rss',
     icon: Rss,
-    description: '订阅管理'
+    description: 'X订阅管理'
   }
 ];
 

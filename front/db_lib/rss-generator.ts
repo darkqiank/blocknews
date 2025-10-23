@@ -1,4 +1,4 @@
-import { Article } from './supabase';
+import { Article, XData } from './supabase';
 
 export interface RSSItem {
   title: string;
@@ -9,6 +9,8 @@ export interface RSSItem {
   source: string;
   id?: number;
   created_at?: string;
+  author?: string;
+  username?: string;
 }
 
 export interface RSSFeed {
@@ -82,5 +84,80 @@ export function generateSourceArticlesFeed(articles: Article[], source: string, 
     link: `${baseUrl}/rss/source/${encodeURIComponent(source)}`,
     lastBuildDate: new Date().toUTCString(),
     items: articles.map(articleToRSSItem)
+  };
+}
+
+// Convert XData to RSS item
+export function xDataToRSSItem(xData: XData): RSSItem {
+  const data = xData.data || {};
+  const text = data.text || data.full_text || '';
+  const createdAt = data.created_at || xData.created_at;
+  
+  // Extract username from data or use fallback
+  const username = xData.username || data.username || data.screen_name || 'unknown';
+  const userId = xData.user_id || data.user_id || '';
+  
+  // Build title
+  let title = `@${username}`;
+  if (xData.more_info?.ai_result?.is_important) {
+    title = `🔥 ${title}`;
+  }
+  if (text) {
+    const preview = text.substring(0, 100);
+    title += `: ${preview}${text.length > 100 ? '...' : ''}`;
+  }
+  
+  // Build description with AI analysis if available
+  let description = text;
+  if (xData.more_info?.ai_result) {
+    const aiResult = xData.more_info.ai_result;
+    description = `<div>`;
+    if (aiResult.summary) {
+      description += `<p><strong>AI 摘要：</strong>${aiResult.summary}</p>`;
+    }
+    if (aiResult.highlight_label && aiResult.highlight_label.length > 0) {
+      description += `<p><strong>标签：</strong>${aiResult.highlight_label.join(', ')}</p>`;
+    }
+    description += `<p><strong>原文：</strong>${text}</p>`;
+    description += `</div>`;
+  }
+  
+  // Build link to X post
+  const xId = xData.x_id;
+  const link = `https://x.com/${username}/status/${xId}`;
+  
+  return {
+    title,
+    link,
+    description: description.substring(0, 1000) + (description.length > 1000 ? '...' : ''),
+    pubDate: new Date(createdAt).toUTCString(),
+    guid: xId,
+    source: `X/@${username}`,
+    id: xData.id,
+    created_at: xData.created_at,
+    author: username,
+    username: username
+  };
+}
+
+// Generate RSS feed for X data by user
+export function generateXUserFeed(xDataList: XData[], username: string, baseUrl: string): RSSFeed {
+  return {
+    title: `X - @${username}`,
+    description: `来自 @${username} 的 X (Twitter) 推文`,
+    link: `${baseUrl}/api/x/rss/${username}`,
+    lastBuildDate: new Date().toUTCString(),
+    items: xDataList.map(xDataToRSSItem)
+  };
+}
+
+// Generate RSS feed for all X data
+export function generateAllXFeed(xDataList: XData[], baseUrl: string): RSSFeed {
+  return {
+    title: 'X - 全部推文',
+    description: '来自所有订阅用户的 X (Twitter) 推文',
+    link: `${baseUrl}/api/x/rss`,
+    lastBuildDate: new Date().toUTCString(),
+    items: xDataList.map(xDataToRSSItem)
   };
 }
